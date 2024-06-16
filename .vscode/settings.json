@@ -48,6 +48,10 @@
         "__tree": "cpp",
         "map": "cpp",
         "optional": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "charconv": "cpp",
+        "deque": "cpp",
+        "iomanip": "cpp",
+        "regex": "cpp"
     }
 }
