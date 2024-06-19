@@ -77,6 +77,16 @@ double Newton_nu(double (*f)(double), double x, double tol)
 }
 
 
+template<class Fn>
+double Newton_nu_2(Fn f, double x, double tol) {
+    while (abs(f(x))>tol)
+    {
+        double dx = 1e-6;
+        double df = (f(x+dx/2)-f(x-dx/2))/dx;
+        x -= f(x)/df;
+    }
+    return x;
+}
 
 int main()
 {
@@ -85,11 +95,13 @@ int main()
 
     double root = bisection(func, tol);
     std::cout << "Root: " << root << std::endl;
-    root = Secant(func, 0, 1000, tol);
-    std::cout << "Root: " << root << std::endl;
-    root = Newton_an(func, func_prime, 1000, tol);
-    std::cout << "Root: " << root << std::endl;
-    root = Newton_nu(func, 1000, tol);
+    // root = Secant(func, 0, 1000, tol);
+    // std::cout << "Root: " << root << std::endl;
+    // root = Newton_an(func, func_prime, 1000, tol);
+    // std::cout << "Root: " << root << std::endl;
+    // root = Newton_nu(func, 1000, tol);
+    // std::cout << "Root: " << root << std::endl;
+    root = Newton_nu_2(func, 1000, tol);
     std::cout << "Root: " << root << std::endl;
     return 0;
 }
