@@ -52,6 +52,7 @@
         "charconv": "cpp",
         "deque": "cpp",
         "iomanip": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "fstream": "cpp"
     }
 }

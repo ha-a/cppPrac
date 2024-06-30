@@ -1,0 +1,321 @@
+\documentclass[a4paper, lualatex, ja=standard]{bxjsarticle}
+
+\usepackage{amsmath, amsthm, amssymb}
+\theoremstyle{definition}
+\newtheorem{thm}{定理}
+\newtheorem*{thm*}{定理}
+\newtheorem{dfn}[thm]{定義}
+\newtheorem*{dfn*}{定義}
+\newtheorem*{prop*}{命題}
+\renewcommand{\proofname}{\textbf{証明}}
+
+
+
+\title{金融工学勉強会第5回}
+\author{朝倉響}
+\date{2024年7月5日}
+
+\begin{document}
+\maketitle
+
+\setcounter{section}{2}
+\section*{前回の復習と今回の概要}
+\begin{itemize}
+  \item 前回（2024年6月28日）
+  \begin{itemize}
+    \item 独立と無相関・同時正規分布
+    \item 条件付き期待値
+    \item マルチンゲール・マルコフ過程の定義
+  \end{itemize}
+  \item 今回（2024年7月5日）
+  \begin{itemize}
+    \item ランダムウォークとその性質
+    \item 中心極限定理
+    \item ブラウン運動の定義
+  \end{itemize}
+\end{itemize}
+
+\section{ブラウン運動}
+\subsection{はじめに}
+ブラウン運動（3.3節）で最も重要な性質は
+\begin{itemize}
+  \item マルチンゲールであること（定理3.3.4）
+  \item 単位時間あたり$1$の割合で2次変分（3.2節）を蓄積すること（定理3.4.3）
+\end{itemize}
+その他の性質は
+\begin{itemize}
+  \item 3.5節：マルコフ性$\to$偏微分方程式と確率解析を関連付ける
+  \item 3.6節：到達時刻の分布$\to$8章：永久アメリカンプットの分析
+  \item 3.7節：胸像原理$\to$7章：エキゾチックオプションの価格計算
+\end{itemize}
+
+\subsection{大きさ調整されたランダムウォーク}
+``scaled''（時間尺度に合わせて変化幅の大きさを調整されていること）を「大きさ調整された」と訳す．
+
+\subsubsection{対称ランダムウォーク}
+\begin{dfn*}[対称ランダムウォーク]
+  同じ確率で$1$増加か$1$減少する確率過程を対称ランダムウォークという．
+  \begin{align}
+    &X_j = \begin{cases}
+      1,  & \omega_j=H; \\
+      -1, & \omega_j=T,
+    \end{cases}\\
+    &\text{ただし， }\mathbb{P}(\omega_j=H)=\mathbb{P}(\omega_j=T)=\frac{1}{2}. \notag
+  \end{align}
+  に対し，
+  \begin{equation}
+    M_k = \sum_{j=1}^k X_j
+  \end{equation}
+  なる確率過程．
+\end{dfn*}
+
+\subsubsection{対称ランダムウォークの増分}
+\begin{itemize}
+  \item \textbf{独立増分}：ランダムウォークの重複しない時間間隔上での増分は独立．\\
+  任意非負整数$0=k_0<k_1<\cdots<k_m$に対し，以下の確率変数は独立．
+  \begin{equation*}
+    (M_{k_1}-M_{k_0}),\ (M_{k_2}-M_{k_1}), \ldots,\ (M_{k_m}-M_{k_{m-1}}).
+  \end{equation*}
+  これは，それぞれの増分は異なるコイン投げに従うために成り立つ．
+  \item ランダムウォークの増分
+  \begin{equation}
+    M_{k_{i+1}}-M_{k_i} = \sum_{j=k_i+1}^{k_{i+1}} X_j
+  \end{equation}
+  は期待値$0$，分散$k_{i+1}-k_i$の確率変数である：
+  \begin{align}
+    \mathbb{E}[M_{k_{i+1}}-M_{k_i}] &= \mathbb{E}\left[\sum_{j=k_i+1}^{k_{i+1}} X_j\right] = \sum_{j=k_i+1}^{k_{i+1}} \mathbb{E}[X_j] = 0,\notag\\
+    \operatorname{Var}(M_{k_{i+1}}-M_{k_i}) &= \operatorname{Var}\left(\sum_{j=k_i+1}^{k_{i+1}} X_j\right) = \sum_{j=k_i+1}^{k_{i+1}} \operatorname{Var}(X_j) = \sum_{j=k_i+1}^{k_{i+1}}1 = k_{i+1}-k_i.
+  \end{align}
+\end{itemize}
+
+\subsubsection{対称ランダムウォークのマルチンゲール性}
+$\mathcal{F}_k$を最初の$k$回のコイン投げの情報を含む$\sigma$-加法族としたとき
+\begin{align}
+  \mathbb{E}[M_\ell\mid \mathcal{F}_k] \notag
+  &= \mathbb{E}[M_\ell-M_k+M_k\mid \mathcal{F}_k] \notag\\
+  &= \mathbb{E}[M_\ell-M_k\mid \mathcal{F}_k] + \mathbb{E}[M_k\mid \mathcal{F}_k] \notag\\
+  &= 0+M_k=M_k. \quad\text{（$M_\ell-M_k$は$\mathcal{F}_k$と独立，$M_k$は$\mathcal{F}_k$--可測）}
+\end{align}
+
+\subsubsection{対称ランダムウォークの2次変分}
+\begin{dfn*}[対称ランダムウォークの2次変分]
+  時刻$k$2いたすまでの対称ランダムウォークの2次変分は
+  \begin{equation}
+    [M,M]_k = \sum_{j=1}^k (M_j-M_{j-1})^2 = \sum_{j=1}^k X_j^2 = \sum_{j=1}^k 1 = k.
+  \end{equation}
+\end{dfn*}
+\begin{itemize}
+  \item 2次変分は経路ごとに計算される．経路に沿って，各ステップの増分の2乗を足し合わせている．
+  \item 対称ランダムウォークの場合では，$\operatorname{Var}(M_k)=[M,M]_k$だが，同じものを指していない．
+  \begin{itemize}
+    \item 分散$\operatorname{Var}(M_k)$は全経路について確率を考慮して平均を取ったものである一方，2次変分$[M,M]_k$は一つの経路しか考えていない．
+    \item 分散はコインの確率に依存して変わりうるが，2次変分は確率に依存しない．
+    \item 分散は理論上のみ計算可能だが，2次変分は実際の経路が一つあれば計算できる．
+  \end{itemize}
+  \item 一般には確率過程の2次変分は経路に依存するが，ランダムウォークでは特別な経路に依存しない．
+\end{itemize}
+
+\subsubsection{大きさ調整された対称ランダムウォーク}
+\begin{dfn*}[大きさ調整された対称ランダムウォーク]
+  $n\in\mathbb{N}_{>0}$に対し，$nt\in\mathbb{N}$ならば
+  \begin{equation}
+    W^{(n)}(t)=\frac{1}{\sqrt{n}}M_{nt}.
+  \end{equation}
+  $nt\not\in\mathbb{N}$ならば，近くの2点の線形補間：
+  \begin{equation*}
+    W^{(n)}(t)
+    = \left(\lfloor nt\rfloor+1-nt\right)W^{(n)}\left(\frac{\lfloor nt\rfloor}{n}\right)
+    + \left(nt-\lfloor nt\rfloor\right)  W^{(n)}\left(\frac{\lfloor nt\rfloor+1}{n}\right).
+  \end{equation*}
+\end{dfn*}
+$1$秒を$n$分割したランダムウォーク．
+時間尺度に合わせて変化幅を調整している（``scaled''）．
+
+\begin{itemize}
+  \item 独立増分\\
+  $0=t_0<t_1<\cdots<t_m,\ nt_j\in\mathbb{N}$に対し，$W^{(n)}(t_1)-W^{(n)}(t_0), \ldots, W^{(n)}(t_m)-W^{(n)}(t_{m-1})$ は独立．
+  \item 増分の期待値と分散\\
+  $ns,nt\in\mathbb{N}$なる$0\leq s\leq t$を選べば，
+  \begin{equation}
+    \begin{aligned}
+      \mathbb{E}[W^{(n)}(t)-W^{(n)}(s)] &= \frac{1}{\sqrt{n}}(M_{nt}-M_{ns})=0,\\
+      \operatorname{Var}(W^{(n)}(t)-W^{(n)}(s)) &= \left(\frac{1}{\sqrt{n}}\right)^2\operatorname{Var}(M_{nt}-M_{ns})=\frac{nt-ns}{n}=t-s.
+    \end{aligned}
+  \end{equation}
+  \item マルチンゲール性\\
+  $nt\in\mathbb{N}$なる$t$に対し，最初の$nt$回のコイン投げの情報を含む$\sigma$--加法族を$\mathcal{F}(t)$とする．$nt, ns\in\mathbb{N}$なる$0\leq s\leq t$に対し，
+  \begin{align}
+    \mathbb{E}[W^{(n)}(t)\mid \mathcal{F}(s)] = \mathbb{E}[W^{(n)}(t)-W^{(n)}(s)+W^{(n)}(s)\mid\mathcal{F}(s)]=0+W^{(n)}(s) = W^{(n)}(s).
+  \end{align}
+  \item 2次変分\\
+  $nt\in\mathbb{N}$なる$t\geq0$に対し，
+  \begin{align}
+    [W^{(n)},W^{(n)}](t) &= \sum_{j=1}^{nt} \left(W^{(n)}\left(\frac{j}{n}\right)-W^{(n)}\left(\frac{j-1}{n}\right)\right)^2 \notag\\
+    &= \sum_{j=1}^{nt} \left(\frac{1}{\sqrt{n}}(M_j-M_{j-1})\right)^2 = \sum_{j=1}^{nt} \frac{1}{n} = t.
+  \end{align}
+\end{itemize}
+
+
+（お気持ち表明）\\
+なぜ大きさの調整方法は$1/\sqrt{n}$なのか？：今までの対称ランダムウォークと``同じ''ようなものを考えるのであれば，$1$秒後に$\pm1$に行けるように，$1/n$とかが自然ではないのか？\\
+
+
+
+
+\subsubsection{大きさ調整された対称ランダムウォークの極限分布}
+\begin{thm}[中心極限定理]
+  $t\geq0$を固定する．$n\to\infty$とするとき，$W^{(n)}(t)$の分布は平均$0$，分散$t$の正規分布に収束する．
+\end{thm}
+\begin{proof}[\textbf{証明の概略}]
+  $W^{(n)}(t)$の積率母関数の極限が正規分布の積率母関数に収束することを示す：
+  \begin{equation*}
+    \lim_{n\to\infty} \mathbb{E}[e^{uW^{(n)}(t)}] = \mathbb{E}[e^{uZ_t}],\quad Z_t\sim N(0,t).
+  \end{equation*}
+  \begin{itemize}
+    \item 「積率母関数が一致$\iff$分布が一致する」はなぜか．
+    \item 積率母関数には$1,2,\ldots$次のモーメントの情報が含まれており，それらが一致することで分布が一致すると考えられる．
+  \end{itemize}
+  \setcounter{equation}{13}
+$nt\in\mathbb{N}$なる$t$に対し，$W^{(n)}(t)$の積率母関数を考える\footnote{$nt\neq\mathbb{N}$なる$t$も考えるべきかもしれないが，，，}．
+  \begin{align}
+    \varphi_n(u) 
+    &= \mathbb{E}\exp\left\{\frac{u}{\sqrt{n}}\sum_{j=1}^{nt}X_j\right\} \notag\\
+    &= \mathbb{E}\prod_{j=1}^{nt}\exp\left\{\frac{u}{\sqrt{n}}X_j\right\} \\
+    &= \prod_{j=1}^{nt}\mathbb{E}\exp\left\{\frac{u}{\sqrt{n}}X_j\right\} \quad\text{（$X_j$の独立性）} \notag\\
+    &= \left(\frac{1}{2}\exp\left\{\frac{u}{\sqrt{n}}\right\}+\frac{1}{2}\exp\left\{-\frac{u}{\sqrt{n}}\right\}\right)^{nt} \notag
+  \end{align}
+  対数を取り，$x=1/\sqrt{n}$と変数変換すれば
+  \begin{equation*}
+    \lim_{n\to\infty} \log\varphi_n(u) = t\lim_{x\downarrow0} \frac{\log(\frac{1}{2}e^{ux}+\frac{1}{2}e^{-ux})}{x^2}.
+  \end{equation*}
+  を考えることになる．
+  ロピタルの定理\footnote{
+    $f(x),g(x)$は$a$を含む区間$I$で微分可能とし，$\lim_{x\to a}f(x)=\lim_{x\to a}g(x)$かつその値が$0$または$\pm\infty$とする．
+    このとき，$\lim_{x\to a}f'(x)/g'(x)$が存在し，$I$における$a$の除外近傍で$g'(x)\neq0$ならば
+    \begin{equation*}
+      \lim_{x\to a}\frac{f(x)}{g(x)} = \lim_{x\to a}\frac{f'(x)}{g'(x)}.
+    \end{equation*}
+  }により，この極限が平均$0$・分散$t$の正規分布の積率母関数に収束することが示される．
+\end{proof}
+
+\subsubsection{二項モデルの極限としての対数正規分布}
+
+
+\subsection{ブラウン運動}
+\subsubsection{ブラウン運動の定義}
+\begin{dfn}[ブラウン運動]
+  確率空間$(\Omega,\mathcal{F},\mathbb{P})$において，各$\omega\in\Omega$に対し，$W(0)=0$を満たし，$\omega$に依存する連続関数$W(t),t\geq0$がブラウン運動とは，すべての$0=t_0<t_1<\cdots<t_m$に対し，増分
+  \begin{equation}
+    W(t_1)-W(t_0),\ W(t_2)-W(t_1),\ldots,\ W(t_m)-W(t_{m-1})
+    \label{eq:BrownianIncrements}
+  \end{equation}
+  が独立で，各増分が正規分布で以下を満たすものである：
+  \begin{align}
+    \mathbb{E}[W(t_{i+1})-W(t_i)] &= 0 \\
+    \operatorname{Var}(W(t_{i+1})-W(t_i)) &= t_{i+1}-t_i.
+  \end{align}
+\end{dfn}
+\begin{itemize}
+  \item 大きさ調整された対称ランダムウォークとブラウン運動の違い
+  \begin{itemize}
+    \item 前者は$nt\not\in\mathbb{N}$のときに線形補間を行っていたが，ブラウン運動はそのような線形となる区間は存在しない．
+    \item 前者の分布は近似的な正規分布だが，ブラウン運動は厳密な正規分布である．
+  \end{itemize}
+  \item $\omega$に対する考え方
+  \begin{itemize}
+    \item ブラウン運動の経路として捉える
+    \item 一連のコイン投げの結果として捉える（$n\to\infty$で際限なく高速なコイン投げ）
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{ブラウン運動の分布}
+\begin{thm}[ブラウン運動の特徴づけ]
+  確率空間$(\Omega,\mathcal{F},\mathbb{P})$において，各$\omega\in\Omega$に対し，$W(0)=0$を満たし，$\omega$に依存する連続関数$W(t),t\geq0$が存在するとする．
+  以下の3つの性質は同値：
+  \begin{enumerate}
+    \item すべての$0=t_0<t_1<\cdots<t_m$に対し，増分\eqref{eq:BrownianIncrements}が独立で，各増分が正規分布$N(0,t_{i+1}-t_i)$に従う（ブラウン運動の定義）．
+    \item すべての$0=t_0<t_1<\cdots<t_m$に対し，確率変数$W(t_1),\ldots,W(t_m)$は平均$0$，共分散行列
+    \begin{equation}
+      \begin{pmatrix}
+        \mathbb{E}[W^2(t_1)] & \mathbb{E}[W(t_1)W(t_2)] & \cdots & \mathbb{E}[W(t_1)W(t_m)] \\
+        \mathbb{E}[W(t_1)W(t_2)] & \mathbb{E}[W^2(t_2)] & \cdots & \mathbb{E}[W(t_2)W(t_m)] \\
+        \vdots & \vdots & \ddots & \vdots \\
+        \mathbb{E}[W(t_1)W(t_m)] & \mathbb{E}[W(t_2)W(t_m)] & \cdots & \mathbb{E}[W^2(t_m)]
+      \end{pmatrix}
+      =
+      \begin{pmatrix}
+        t_1 & t_1 & \cdots & t_1 \\
+        t_1 & t_2 & \cdots & t_2 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        t_1 & t_2 & \cdots & t_m
+      \end{pmatrix}
+    \end{equation}
+    の同時正規分布である．
+    \item すべての$0=t_0<t_1<\cdots<t_m$に対し，確率変数$W(t_1),\ldots,W(t_m)$は同時積率母関数
+    \begin{equation}
+      \varphi(u_1,\ldots,u_m)=\exp\left\{\frac{1}{2}(u_1+\cdots+u_m)^2t_1+\frac{1}{2}(u_2+\cdots+u_m)^2(t_2-t_1)+\cdots+\frac{1}{2}u_m^2(t_m-t_{m-1})\right\}
+    \end{equation}
+  \end{enumerate}
+\end{thm}
+\begin{proof}
+  (i)$\implies$(ii)：\\
+  定義より，$W(t)$の増分は独立で，各増分が正規分布$N(0,t_{i+1}-t_i)$に従うので，$W(t_1),W(t_2),\ldots,W(t_m)$は同時正規分布である（同時正規確率変数の線形結合で得られる確率変数は同時正規）．
+  \begin{itemize}
+    \item 平均：$\mathbb{E}[W(t_i)]=0$
+    \item 分散：$\operatorname{Var}(W(t_i))=t_i$
+    \item 共分散：$0\leq s\leq t$ならば
+    \begin{align*}
+      \mathbb{E}[W(s)W(t)] &= \mathbb{E}[W(s)(W(t)-W(s))+W^2(s)] \\
+      &= 0 + \operatorname{Var}(W(s)) = s.
+    \end{align*}
+  \end{itemize}
+  (i)$\implies$(iii)：\\
+  \begin{align*}
+    \varphi(u_1,\ldots,u_m) 
+    &= \mathbb{E}\exp\left\{u_1W(t_1)+\cdots+u_mW(t_m)\right\} \\
+    &= \mathbb{E}\exp\left\{(u_1+\cdots+u_m)W(t_1)+(u_2+\cdots+u_m)(W(t_2)-W(t_1))+\cdots+u_m(W(t_m)-W(t_{m-1}))\right\} \\
+    &= \mathbb{E}\exp\left\{(u_1+\cdots+u_m)W(t_1)\right\}\cdots\mathbb{E}\exp\left\{u_m(W(t_m)-W(t_{m-1}))\right\} \\
+    &= \exp\left\{\frac{1}{2}(u_1+\cdots+u_m)^2t_1\right\}\cdot\exp\left\{\frac{1}{2}(u_2+\cdots+u_m)^2(t_2-t_1)\right\}\cdots\exp\left\{\frac{1}{2}u_m^2(t_m-t_{m-1})\right\}.
+  \end{align*}
+  (ii)$\iff$(iii)：略\\
+  (ii)$\implies$(i)：\\
+  $0\leq s<t$に対し，$W(s),W(t)$が同時正規分布であることから，$W(t)-W(s), W(s)$も同時正規である．
+  共分散を考えると
+  \begin{align*}
+    \mathbb{E}[(W(t)-W(s))W(s)] = \mathbb{E}[W(t)W(s)]-\mathbb{E}[W(s)^2] = s-s = 0.
+  \end{align*}
+  同時正規の場合，無相関と独立は同値．
+\end{proof}
+
+
+\subsubsection{ブラウン運動に対するフィルトレーション}
+\begin{dfn}[ブラウン運動に対するフィルトレーション]
+  確率空間$(\Omega,\mathcal{F},\mathbb{P})$上のブラウン運動$W(t)$に対し，以下を満たす$\sigma$--加法族$\mathcal{F}(t),t\geq0$の集合をブラウン運動に対するフィルトレーションという：
+  \begin{enumerate}
+    \item \textbf{情報の蓄積．}
+    $0\leq s\leq t$に対し，$\mathcal{F}(s)\subset\mathcal{F}(t)$．
+    % つまり，より将来に利用可能な情報は，過去のそれと比べ等しいかそれ以上．
+    \item \textbf{適合性．}
+    各$t\geq0$に対し，$W(t)$は$F(t)$--可測．
+    % つまり，ある時刻で利用可能な情報はその時刻のブラウン運動を評価するのに十分．
+    \item \textbf{将来の増分の独立性．}
+    $0\leq t<u$に対し，$W(u)-W(t)$は$\mathcal{F}(t)$と独立．
+    % つまり，将来の増分は現在の情報と独立．
+  \end{enumerate}
+\end{dfn}
+
+\subsubsection{ブラウン運動のマルチンゲール性}
+\begin{thm}[ブラウン運動のマルチンゲール性]
+  ブラウン運動$W(t)$はマルチンゲールである．
+\end{thm}
+\begin{proof}
+  $0\leq s\leq t$に対し，
+  \begin{align*}
+    \mathbb{E}[W(t)\mid\mathcal{F}(s)] 
+    &= \mathbb{E}[W(t)-W(s)+W(s)\mid\mathcal{F}(s)] \\
+    &= \mathbb{E}[W(t)-W(s)] + \mathbb{E}[W(s)\mid\mathcal{F}(s)] \\
+    &= 0 + W(s) = W(s).
+  \end{align*}
+\end{proof}
+
+\end{document}

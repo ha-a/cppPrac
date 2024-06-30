@@ -62,7 +62,7 @@ std::string binary(target_type& x, base_type bs){
 
 target_type minimum1(){
     target_type x = 1.;
-    while (x/2!=0)
+    while (1+x/2!=1)
     {
         x /= 2;
         // printf("x = %e\n", x);
@@ -79,10 +79,6 @@ target_type minimum1(){
     return u;
 }
 
-target_type times2(std::string){
-    target_type res = 0.;
-    
-}
 
 int main(){
     std::string x_str = "123456789";
@@ -98,6 +94,44 @@ int main(){
     // std::cout << std::fixed << std::setprecision(100) << y << std::endl;
     printf("y = %e\n", y);
     printf("FLT_MIN = %e\n", FLT_MIN);  
+
+
+
+
+
+    // float e = (1<<23) + 1;
+    float e = 1;
+    for (std::size_t i=0; i<127; ++i)
+    {
+        e /= 2;
+    }
+    printf("tmp = %e\n", e);
+
+    (1+e!=1)?printf("true\n"):printf("false\n");
+
+    e = (1<<23) + 1;
+    for (std::size_t i=0; i<23; ++i)
+    {
+        e /= 2;
+    }
+    e -= 1;
+    printf("tmp = %e\n", e);
+
+    (1+e!=1)?printf("true\n"):printf("false\n");
+    float f = e;
+    for (int i=0; i<10; ++i)
+    {
+        f /= (1+0.001*i);
+        if (1+e!=1+f && 1+f!=1) printf("true\n");
+        else printf("false\n");
+    }
+    // for (int i=1; i<=10; ++i)
+    // {
+    //     auto f = e /(1+1/(1<<(10-i)));
+    //     printf("tmp = %e\n", f);
+    //     (1+f!=1)?printf("true\n"):printf("false\n");
+    // }
+    
 
     return 0;
 }

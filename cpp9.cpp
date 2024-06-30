@@ -3,6 +3,18 @@
 #include <cmath>
 #include <algorithm>
 
+#include <time.h>
+
+#include "test.h"
+
+
+
+
+
+
+
+template<typename T>
+void printMat(std::vector<std::vector<T>> &A);
 
 void LU(std::vector<std::vector<double>> &A){
     int N = A.size();
@@ -20,6 +32,35 @@ void LU(std::vector<std::vector<double>> &A){
             }
         }
     }
+}
+void LU_decomp(std::vector<std::vector<double>> &mat){
+    auto A = mat;
+    int N = A.size();
+    std::vector<std::size_t> p{0,1,2};
+    std::vector<std::size_t> ind{0,0,0};
+    do{
+        // std::cout << p[0] << p[1] << p[2] << std::endl;
+        A = mat;
+        clock_t t_start = clock();
+        for (ind[p[0]]=0; ind[p[0]]<N; ++ind[p[0]]){
+            for (ind[p[1]]=0; ind[p[1]]<N; ++ind[p[1]]){
+                for (ind[p[2]]=0; ind[p[2]]<N; ++ind[p[2]]){
+                    if ((ind[0]>ind[1]&&ind[1]>ind[2])||(ind[0]<=ind[1]&&ind[0]>ind[2])){
+                        A[ind[0]][ind[1]] -= A[ind[0]][ind[2]] * A[ind[2]][ind[1]];
+                    }
+
+                    if (ind[0]>ind[1]){
+                        A[ind[0]][ind[1]] /= A[ind[1]][ind[1]];
+                    } 
+                }
+            }
+        }
+        clock_t t_end = clock();
+        const double calc_time = static_cast<double>(t_end - t_start) / CLOCKS_PER_SEC * 1000.;
+        std::cout << "calc_time: " << calc_time << "ms" << std::endl;
+        // printMat(A);
+        std::cout << "--------" << std::endl;
+    } while (std::next_permutation(p.begin(), p.end()));
 }
 
 void LUsolve(std::vector<std::vector<double>> &A, std::vector<double> &b){
@@ -163,59 +204,75 @@ void printMat(std::vector<T> &A){
 }
 
 
+#include <random>
 
 int main(){
-    int N = 20;
-    std::vector<std::vector<double>> A(N, std::vector<double>(N, 0)), invA(N, std::vector<double>(N, 0));
-    makeHilbert(A);
-    makeInvHilbert(invA);
-    auto A0 = A;
-
-    std::vector<double> b(N, 1);
-    for (int n=1; n<=N; ++n) b[n-1] = N-n;
-    std::vector<double> x = b;
-    LU(A);
-    // printMat(A);
-    LUsolve(A, x);
-    // printMat(A);
-    auto err = matmul(A0, x);
-    // printMat(err);
-    err = vecMinus(b, err);
-    // printMat(err);
-    std::cout << vecAbs(err) << std::endl;
-
-    // printMat(x);
-
-    // auto y = matmul(invA, b);
-    // auto c = matmul(A, y);
-    // printMat(c);
-
-    // auto A0 = A;
-    // printMat(A0);
-    for (int k=0; k<100; ++k){
-        // A = A0;
-        LUsolve(A, err);
-        // printMat(err);
-        x = vecPlus(x, err);
-        err = matmul(A0, x);
-        err = vecMinus(b, err);
-        std::cout << vecAbs(err) << std::endl;
+    std::random_device seed_gen;
+    std::default_random_engine engine(seed_gen());
+    std::uniform_int_distribution<> dist(0, 9);
+    int N = 400;
+    // std::vector<std::vector<double>> A{{2,5,1},{1,5,3},{1,2,4}};
+    std::vector<std::vector<double>> A(N, std::vector<double>(N, 0));
+    for (std::size_t n=0; n<N; ++n){
+        for (std::size_t m=0; m<N; ++m){
+            A.at(n).at(m) = dist(engine);
+        }
     }
-    // printMat(b);
-    // while (true){
-        // auto y = matmul(invA, err);
-        // x = vecPlus(x, y);
-        // err = matmul(A, x);
-        // err = vecMinus(b, err);
-        // // printMat(err);
-        // std::cout << vecAbs(err) << std::endl;
-    // }
+    // printMat(A);
+    
+    LU_decomp(A);
+    //  
+    // int N = 20;
+    // std::vector<std::vector<double>> A(N, std::vector<double>(N, 0)), invA(N, std::vector<double>(N, 0));
+    // makeHilbert(A);
+    // makeInvHilbert(invA);
+    // auto A0 = A;
 
-    // printMat(invA);
-
-    // preciser(A, invA, b, x, 1e-20);
-    // err = matmul(A, x);
+    // std::vector<double> b(N, 1);
+    // for (int n=1; n<=N; ++n) b[n-1] = N-n;
+    // std::vector<double> x = b;
+    // LU(A);
+    // // printMat(A);
+    // LUsolve(A, x);
+    // // printMat(A);
+    // auto err = matmul(A0, x);
+    // // printMat(err);
     // err = vecMinus(b, err);
-    // printMat(x);
+    // // printMat(err);
     // std::cout << vecAbs(err) << std::endl;
+
+    // // printMat(x);
+
+    // // auto y = matmul(invA, b);
+    // // auto c = matmul(A, y);
+    // // printMat(c);
+
+    // // auto A0 = A;
+    // // printMat(A0);
+    // for (int k=0; k<100; ++k){
+    //     // A = A0;
+    //     LUsolve(A, err);
+    //     // printMat(err);
+    //     x = vecPlus(x, err);
+    //     err = matmul(A0, x);
+    //     err = vecMinus(b, err);
+    //     std::cout << vecAbs(err) << std::endl;
+    // }
+    // // printMat(b);
+    // // while (true){
+    //     // auto y = matmul(invA, err);
+    //     // x = vecPlus(x, y);
+    //     // err = matmul(A, x);
+    //     // err = vecMinus(b, err);
+    //     // // printMat(err);
+    //     // std::cout << vecAbs(err) << std::endl;
+    // // }
+
+    // // printMat(invA);
+
+    // // preciser(A, invA, b, x, 1e-20);
+    // // err = matmul(A, x);
+    // // err = vecMinus(b, err);
+    // // printMat(x);
+    // // std::cout << vecAbs(err) << std::endl;
 }
