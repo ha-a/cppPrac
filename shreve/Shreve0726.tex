@@ -1,0 +1,505 @@
+\documentclass[a4paper, lualatex, ja=standard]{bxjsarticle}
+
+\usepackage{geometry}
+\geometry{
+  left=2.5cm, right=2.5cm, top=3cm, bottom=3cm
+}
+
+\usepackage{amsmath, amsthm, amssymb}
+\theoremstyle{definition}
+\newtheorem{thm}{定理}[subsection]
+\newtheorem*{thm*}{定理}
+\newtheorem{dfn}[thm]{定義}
+\newtheorem*{dfn*}{定義}
+\newtheorem{lem}[thm]{補題}
+\newtheorem*{lem*}{補題}
+\newtheorem{expl}[thm]{例題}
+\newtheorem{note}[thm]{注意}
+\newtheorem*{note*}{注意}
+\newtheorem*{prop*}{命題}
+\newtheorem*{assum*}{仮定}
+\renewcommand{\proofname}{\textbf{証明}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\diff}{\mathrm{d}}
+
+\renewcommand{\labelenumi}{(\roman{enumi})}
+\renewcommand{\theequation}{\thesubsection.\arabic{equation}}
+\makeatletter
+\@addtoreset{equation}{subsection}
+\makeatother
+
+\setlength{\parindent}{0cm}
+
+\usepackage{hyperref}
+
+\title{金融工学勉強会第5回}
+\author{朝倉響}
+\date{2024年7月26日}
+
+\begin{document}
+\maketitle
+
+\setcounter{section}{2}
+\section*{前回の復習と今回の概要}
+\begin{itemize}
+  \item 前回（2024年7月22日）
+  \begin{itemize}
+    \item 単過程の場合の伊藤積分
+  \end{itemize}
+  \item 今回（2024年7月26日）
+  \begin{itemize}
+    \item 一般の被積分過程の伊藤積分
+    \item 伊藤--デブリンの公式
+  \end{itemize}
+\end{itemize}
+
+\setcounter{section}{4}
+\setcounter{subsection}{2}
+\subsection{一般の被積分過程に対する伊藤積分}
+\begin{assum*}
+  被積分過程$\Delta(t)\ (t\geq0)$は
+  \begin{itemize}
+    \item 時刻とともに連続的に変化し，ジャンプを許容\footnote{右連続かつ左極限が存在．つまり単過程みたいなやつ}
+    \item フィルトレーション$\F(t)$について適合過程：$\Delta(t)$は$\F(t)$--可測
+    \item $2$乗可積分性
+    \begin{equation}
+      \E\int_0^T\Delta^2(t)\,\diff t < \infty
+    \end{equation}
+  \end{itemize}
+\end{assum*}
+
+\begin{dfn*}
+  被積分過程$\Delta(t)$に対して，伊藤積分を次のように定義する：
+  \begin{equation}
+    I(t) = \int_0^t \Delta(u)\,\diff W(u)=\lim_{n\to\infty}\int_0^t\Delta_n(u)\,\diff W(u),\quad 0\leq t\leq T \tag{4.3.3}
+  \end{equation}
+  ここで，$\Delta_n(t)$は単過程の列で，分割$\Pi=\{t_j\mid 0=t_0<t_1<\cdots<t_n=T\}$に対し
+  \begin{align}
+    \Delta_n(t) = \Delta(t_j),\quad t_{j-1}\leq t < t_j\notag\\
+    \lim_{n\to\infty}\E\int_0^T|\Delta_n(t)-\Delta(t)|^2\,\diff t=0 \tag{4.3.2}
+  \end{align}
+  を満たすように選んだものである\footnote{上述の仮定を満たす一般の$\Delta(t)$に対し，このような単過程による近似が可能．詳しい証明は省くが，「有界連続関数は単過程で近似可能」「有界な関数は有界連続関数で近似可能」「$\Delta(t)$は有界な関数で近似可能」を示すことによって証明される．参考：\url{https://www.asahi-net.or.jp/~fu5k-mths/pdf/stoch_diff.pdf}}．
+\end{dfn*}
+\setcounter{equation}{3}
+
+\begin{thm}
+  $I(t)$は次の性質を持つ：
+  \begin{enumerate}
+    \item \textbf{連続性}：積分区間上限の$t$について，$I(t)$の経路は連続
+    \item \textbf{適合性}：$I(t)$は$\F(t)$--可測
+    \item \textbf{線形性}：$J(t)=\int_0^t\Gamma(u)\,\diff W(u)$と定数$c$に対し，
+    \begin{align*}
+      I(t)\pm J(t) &= \int_0^t \Delta(u)\pm\Gamma(u)\,\diff W(u)\\
+      cI(t) &= \int_0^t c\Delta(u)\,\diff W(u)
+    \end{align*}
+    \item \textbf{マルチンゲール性}：$I(t)$はマルチンゲール
+    \item \textbf{伊藤の等長性}：
+    \begin{equation*}
+      \E I^2(t)=\E\int_0^t\Delta^2(u)\,\diff u
+    \end{equation*}
+    \item \textbf{2次変分}：
+    \begin{equation*}
+      [I,I](t) = \int_0^t\Delta^2(u)\,\diff u
+    \end{equation*}
+  \end{enumerate}
+\end{thm}
+
+\begin{expl}
+  $\Delta(t)=W(t)$の場合，つまり$I(t)=\int_0^tW(u)\,\diff W(u)$を計算する．
+
+  $\Delta_n(t)$を等間隔で取れば，
+  \begin{equation*}
+    \Delta_n(t) = W\left(\frac{jT}{n}\right)=W_j,\quad \frac{jT}{n}\leq t < \frac{(j+1)T}{n}
+  \end{equation*}
+  であり，$\lim_{n\to\infty}\E\int_0^T|\Delta_n(t)-W(t)|^2\diff t=0$である\footnote{要証明?}．
+  定義より
+  \begin{align}
+    \int_0^T W(t)\,\diff W(t) &= \lim_{n\to\infty}\int_0^T\Delta_n(t)\,\diff W(t)\notag\\
+    &= \lim_{n\to\infty}\sum_{j=0}^{n-1}W_j(W_{j+1}-W_j)
+  \end{align}
+  を求めることとなる．準備として，以下を考える
+  \begin{align}
+    \frac{1}{2}\sum_{j=0}^{n-1}(W_{j+1}-W_j)^2
+    &= \frac{1}{2}\sum_{j=0}^{n-1}W_{j+1}^2-\sum_{j=0}^{n-1}W_{j+1}W_j+\frac{1}{2}\sum_{j=0}^{n-1}W_j^2\notag\\
+    &= \frac{1}{2} \left(W_0^2+\sum_{j=1}^{n}W_j^2\right) - \sum_{j=0}^{n-1}W_{j+1}W_j + \frac{1}{2} \sum_{j=0}^{n-1}W_j^2\notag\\
+    &= \frac{1}{2}W_n^2 + \sum_{j=0}^{n-1}W_j^2 - \sum_{j=0}^{n-1}W_{j+1}W_j\notag\\
+    &= \frac{1}{2}W_n^2 - \sum_{j=0}^{n-1}W_j(W_{j+1}-W_j)
+  \end{align}
+  よって
+  \begin{align}
+    \int_0^TW(t)\,\diff W(t) &= \lim_{n\to\infty}\sum_{j=0}^{n-1}W_j(W_{j+1}-W_j)\notag\\
+    &= \lim_{n\to\infty}\frac{1}{2} W_n^2 - \frac{1}{2}\sum_{j=0}^{n-1}(W_{j+1}-W_j)^2\notag\\
+    &= \frac{1}{2} W^2(T) - \frac{1}{2}[W,W](T) = \frac{1}{2}W^2(T) - \frac{1}{2}T.
+  \end{align}
+
+  \begin{itemize}
+    \item 普通と何が違うのか？
+    
+    微分可能関数$g(0)=0$を考えると
+    \begin{equation*}
+      \int_0^T g(t)\,\diff g(t) = \left.\frac{1}{2}g^2(t)\right|_0^T = \frac{1}{2}g^2(T)
+    \end{equation*}
+    となり，伊藤積分では$-\frac{1}{2}T$の項が余分であり，原因は以下の2点にある：
+    \begin{itemize}
+      \item ブラウン運動の2次変分が$0$でない
+      \item 伊藤積分の構築法：区間の左点で評価
+    \end{itemize}
+    \item ストラノヴィッチ積分：単関数を区間の左端の点ではなく，区間の中点で評価する．
+    \begin{equation}
+      \lim_{n\to\infty}\sum_{j=0}^{n-1}W\left(\frac{(j+\frac{1}{2})T}{n}\right)\left[W\left(\frac{(j+1)T}{n}\right)-W\left(\frac{jT}{n}\right)\right]
+    \end{equation}
+    表記の簡単化のために$W_j=W(jT/n),\ W_j^\ast=W((j+\frac{1}{2})T/n)$として
+    \begin{align*}
+      \sum_{j=0}^{n-1} W_j^\ast(W_{j+1}-W_j) 
+      &= \sum_{j=0}^{n-1} (W_j^\ast-W_j)(W_{j+1}-W_j^\ast+W_j^\ast -  W_j) + W_j(W_{j+1}-W_j)\\
+      &= \sum_{j=0}^{n-1} (W_j^\ast-W_j)^2 + \sum_{j=0}^{n-1}(W_j^\ast-W_j)(W_{j+1}-W_j^\ast) + W_j(W_{j+1}-W_j)\\
+      &= \sum_{j=0}^{n-1} (W_j^\ast-W_j)^2 + \sum_{j=0}^{n-1}W_j^\ast(W_{j+1}-W_j^\ast) + W_j(W_j^\ast-W_j)\\
+      &\to \frac{1}{2}T + I(T) \quad (n\to\infty) \\
+      &= \frac{1}{2}W^2(T)
+    \end{align*}
+    極限のところで，
+    \begin{itemize}
+      \item 第1項はブラウン運動の抽出2次変分が平均$T$，分散$0$に収束するのと全く同様に示せる（略）
+      \item 第2項は伊藤積分の定義に従っている．ここで分割は$\{0=t_0, t_0^\ast, t_1, t_1^\ast, \ldots, t_{n-1}^\ast, t_n=T\}$を用いていることに注意
+    \end{itemize}
+    ストラノヴィッチ積分では「余分な項」がなくなるが
+    \begin{itemize}
+      \item ファイナンスの文脈では，不自然：資産保有量（被積分関数）を各区間の中点で評価された資産価格（積分する側）で決めることはできない
+      \item マルチンゲールでない
+      \begin{align*}
+        \text{$I(t)$はマルチンゲール} &\implies \E I(t) = I(0) = 0,\ \forall t>0\\
+        \text{ストラノヴィッチ積分$S(t)$はマルチンゲールでない} &\impliedby \E S(t)=\frac{1}{2}t \neq S(0)=0,\ t>0
+      \end{align*}
+    \end{itemize}
+  \end{itemize}
+\end{expl}
+
+\subsection{伊藤--デブリンの公式}
+\subsubsection{ブラウン運動に対する公式}
+\setcounter{equation}{2}
+\begin{thm}[ブラウン運動に対する伊藤--デブリンの公式]
+  $f(t,x)$は偏微分$f_t(t,x),f_x(t,x),f_{xx}(t,x)$が定義され，連続であるような関数．
+  $W(t)$はブラウン運動．このとき任意の$T\geq0$に対し
+  \begin{equation}
+    f(T,W(T)) = f(0,W(0)) + \int_0^T f_t(t,W(t))\,\diff t + \int_0^T f_x(t,W(t))\,\diff W(t) + \frac{1}{2}\int_0^T f_{xx}(t,W(t))\,\diff t
+  \end{equation}
+\end{thm}
+\begin{proof}[\textbf{証明の概略}]
+  テイラー展開を考える\footnote{$f_{tx},f_{tt}$やより高次の微分については存在が仮定されておらず，このあたりが「証明の概略」と述べられる理由だと考えられる}．
+  \begin{align}
+    &f(t_{j+1},W(t_{j+1})) - f(t_j,W(t_j))
+    = f_t(t_j,W(t_j))(t_{j+1}-t_j) + f_x(t_j,W(t_j))(W(t_{j+1})-W(t_j)) \notag\\
+    &+ \frac{1}{2}f_{xx}(t_j,W(t_j))(W(t_{j+1})-W(t_j))^2 
+     + f_{tx}(t_j,W(t_j))(t_{j+1}-t_j)(W(t_{j+1})-W(t_j))\notag\\
+    &+ \frac{1}{2}f_{tt}(t_j,W(t_j))(t_{j+1}-t_j)^2 
+    + \text{高次の項}
+  \end{align}
+  となる．
+  この両辺の$j=0,\ldots,n-1$の合計を取り，$\|\Pi\|\to0$の極限を考える．
+  \begin{align*}
+    \text{（左辺）}&=f(T, W(T)) - f(0,W(0)) \\
+    \text{（右辺第一項）}&=\int_0^T f_t(t,W(t))\,\diff t\\
+    \text{（右辺第二項）}&=\int_0^T f_x(t,W(t))\,\diff W(t)
+  \end{align*}
+  注意3.4.4にも記載の通り，「多くの項の和を取る」という場合において，$(W(t_{j+1})-W(T_j))^2$は$t_{j+1}-t_j$に置換られることを念頭にすれば，
+  \begin{align*}
+    \text{（右辺第三項）}&=\lim_{\|\Pi\|\to0}\sum_{j=0}^{n-1}\frac{1}{2}f_{xx}(t_j,W(t_j))(t_{j+1}-t_j)
+    = \frac{1}{2}\int_0^T f_{xx}(t,W(t))\,\diff t
+  \end{align*}
+  第4項以降はすべて$0$となる．第4項の場合のみ示す
+  \begin{align*}
+    \text{（右辺第4項）}&= \lim _{\|\Pi\| \to 0}\left|\sum_{j=0}^{n-1} f_{t x}\left(t_j, W\left(t_j\right)\right)\left(t_{j+1}-t_j\right)\left(W\left(t_{j+1}\right)-W\left(t_j\right)\right)\right| \\ 
+    & \leq \lim _{\|\Pi\| \to 0} \sum_{j=0}^{n-1}\left|f_{t x}\left(t_j, W\left(t_j\right)\right)\right| \cdot\left(t_{j+1}-t_j\right) \cdot\left|W\left(t_{j+1}\right)-W\left(t_j\right)\right| \\ 
+    & \leq \lim _{\|\Pi\| \to 0}\max_{0 \leq k \leq n-1}\left|W\left(t_{k+1}\right)-W\left(t_k\right)\right| \cdot \lim _{\|\Pi\| \to 0} \sum_{j=0}^{n-1}\left|f_{t x}\left(t_j, W\left(t_j\right)\right)\right|\left(t_{j+1}-t_j\right) \\
+    & =0 \cdot \int_0^T  |f_{t x}(t, W(t))| \,\diff t=0 \quad\text{（$W$の連続性）}
+  \end{align*}
+\end{proof}
+
+\begin{note}
+  \begin{itemize}
+    \item 微分形の表示
+    
+    伊藤--デブリンの公式を微分形で書くこともできる：
+    \setcounter{equation}{12}
+    \begin{equation}
+      \diff f(t,W(t)) = f_t(t,W(t))\diff t + f_x(t,W(t))\diff W(t) + \frac{1}{2}f_{xx}(t,W(t))\diff t
+    \end{equation}
+    これはテイラー展開
+    \begin{align*}
+      \diff f(t,W(t)) &= f_t(t,W(t))\diff t + f_x(t,W(t))\diff W(t) \\
+      &\quad+ \frac{1}{2}f_{xx}(t,W(t))\diff t 
+      + f_{tx}(t,W(t))\diff t\diff W(t) + \frac{1}{2}f_{tt}(t,W(t))\diff t\diff t
+    \end{align*}
+    において
+    \setcounter{equation}{11}
+    \begin{equation}
+      \diff W(t)\diff W(t) = \diff t,\quad \diff t\diff W(t) = \diff W(t)\diff t = 0,\quad \diff t\diff t = 0
+    \end{equation}
+    であることから導かれる．
+    ただし，前節から引き続き，これは正式な表記ではない．
+
+    \item 普通と何が違うのか？
+    
+    テイラー展開し，それらを合計し，$\|\Pi\|\to0$の極限を考えていた．
+    一般の微分可能な関数と違い，ブラウン運動は変動が激しく，ゼロでない2次変分を持つため，一時近似の微小誤差の合計が$\|\Pi\|\to0$極限でも$0$にならない．
+    これが余分な項$\frac{1}{2}\int_0^T f_{xx}(t,W(t))\,\diff t$を引きおこしている．
+    一方，2次近似までしてやれば，その微小誤差の合計は極限で$0$となる．
+
+    \item 伊藤積分の計算
+    
+    伊藤--デブリンの公式を使うことで，伊藤積分の計算を楽にできる．
+    例えば，$f=\frac{1}{2}x^2$とすれば
+    \begin{align*}
+      \frac{1}{2}W^2(T) - 0 &= \int_0^T 0\,\diff t \int_0^T W(t)\,\diff W(t) + \frac{1}{2}\int_0^T \diff t\\
+      &= \int_0^T W(t)\,\diff W(t) + \frac{1}{2}T
+    \end{align*}
+    によって伊藤積分$\int_0^T W(t)\,\diff W(t)$を単関数による近似などを必要とせずに求められる．
+  \end{itemize}
+\end{note}
+
+\subsubsection{伊藤過程に対する公式}
+\begin{dfn}[伊藤過程]
+  $W(t),\ t\geq0$：ブラウン運動，$\F(t),\ t\geq0$：関連するフィルトレーション，$\Delta(u),\Theta(u)$：適合確率過程で任意の$t>0$に対し以下を満たすとする．
+  \begin{align*}
+    \E\int_0^t \Delta^2(u)\,\diff u< \infty,\quad \int_0^t |\Theta(u)|\,\diff u<\infty.
+  \end{align*}
+  このとき，次の形の確率過程を伊藤過程という
+  \begin{equation}
+    X(t) = X(0) + \int_0^t \Delta(u)\,\diff W(u) + \int_0^t \Theta(u)\,\diff u.
+  \end{equation}
+\end{dfn}
+\begin{lem}
+  伊藤過程の2次変分は
+  \begin{equation}
+    [X,X](t) = \int_0^t \Delta^2(u)\,\diff u
+  \end{equation}
+\end{lem}
+\begin{proof}
+  $I(t)=\int_0^t\Delta(u)\,\diff W(u), R(t)=\int_0^t\Theta(u)\,\diff u$と定義すると
+  \begin{align*}
+    \sum_{j=0}^{n-1}[X(t_{j+1})-X(t_j)]^2 &= \sum_{j=0}^{n-1} [I(t_{j+1}-I(t_j))] + \sum_{j=0}^{n-1} [R(t_{j+1})-R(t_j)]^2 \\
+    &\qquad + 2\sum_{j=0}^{n-1} [I(t_{j+1}-I(t_j))][R(t_{j+1}-R(t_j)]]
+  \end{align*}
+  $\|\Pi\|\to0$極限を考えると，
+  \begin{align*}
+    \text{（右辺第1項）} &\to [I,I](t) = \int_0^t\Delta^2(u)\,\diff u\\
+    |\text{右辺第2項}| &\leq \max_{0\leq k\leq n-1}|R(t_{k+1})-R(t_k)|\sum_{j=0}^{n-1}|R(t_{j+1})-R(t_j)| \\
+    &= \max_{0\leq k\leq n-1}|R(t_{k+1})-R(t_k)|\sum_{j=0}^{n-1}\left|\int_{t_j}^{t_{j+1}}\Theta(u)\,\diff u\right| \\
+    &\leq \max_{0\leq k\leq n-1}|R(t_{k+1})-R(t_k)|\sum_{j=0}^{n-1}\int_{t_j}^{t_{j+1}}|\Theta(u)|\,\diff u \\
+    &\to 0\quad\text{（$R$の連続性より）}\\
+    |\text{右辺第3項}| &\leq \max_{0\leq k\leq n-1}|I(t_{k+1})-I(t_k)|\sum_{j=0}^{n-1}|R(t_{j+1})-R(t_j)| \\
+    &\to 0\quad\text{（$I$の連続性より上と同様）}
+  \end{align*}
+\end{proof}
+
+\begin{note*}
+  \begin{itemize}
+    \item 
+    微分形で考えれば
+    \begin{align}
+      \diff X(t)\diff X(t) &= \Delta^2(t)\diff W(t)\diff W(t) + \Theta^2(t)\diff t\diff t + 2\Delta(t)\Theta(t)\diff W(t)\diff t \notag\\
+      &= \Delta^2(t)\diff t
+    \end{align}
+
+    \item $I(t)$と$R(t)$の違い．
+    
+    いずれも確率的であり得る．
+    一方，$R(t)$は$I(t)$のようには激しく変動しない．
+    時刻$t$から少し先の未来$t+h$を推定する．
+    \begin{align*}
+      R(t+h) &\approx R(t) + \Theta(t)h\\
+      I(t+h) &\approx I(t) + \Delta(t)(W(t+h)-W(t))
+    \end{align*}
+    $W(t+h)-W(t)$は時刻$t$に利用可能な情報と独立で，$h$が小さくても大きくなりうる．
+  \end{itemize}
+\end{note*}
+
+\begin{dfn}[伊藤過程に関する積分]
+  $X(t),t\geq0$：伊藤過程，$\Gamma(t),t\geq0$：適合過程で以下を満たすもの
+  \begin{equation*}
+    \E\int_0^t\Gamma^2(u)\Delta^2(u)\,\diff u<\infty,\qquad
+    \int_0^t|\Gamma(u)\Theta(u)|\,\diff u<\infty\qquad \forall t>0
+  \end{equation*}
+  このとき，伊藤過程に関する積分は次のように定義される：
+  \begin{equation}
+    \int_0^t\Gamma(u)\,\diff X(u) = \int_0^t\Gamma(u)\Delta(u)\,\diff W(u) + \int_0^t\Gamma(u)\Theta(u)\,\diff u
+  \end{equation}
+\end{dfn}
+
+\begin{thm}[伊藤過程に対する伊藤--デブリンの公式]
+  $f(t,x)$は偏微分$f_t(t,x),f_x(t,x),f_{xx}(t,x)$が定義され，連続であるような関数．
+  $X(t)$は伊藤過程．このとき任意の$T\geq0$に対し，
+  \begin{align}
+    f(T,X(t)) = f(0,W(0)) &+ \int_0^T f_t(t,X(t))\,\diff t + \int_0^T f_x(t,X(t))\,\diff X(t)+ \frac{1}{2}\int_0^T f_{xx}(t,X(t))\,\diff [X,X](t)\notag\\
+    = f(0,W(0)) &+ \int_0^T f_t(t,X(t))\,\diff t \notag\\
+    &+ \int_0^T f_x(t,X(t))\Delta(t)\,\diff X(t) + \int_0^T f_x(t,X(t))\Theta(t)\,\diff t \notag\\
+    &+ \frac{1}{2}\int_0^T f_{xx}(t,X(t))\Delta^2(t)\,\diff t
+  \end{align}
+\end{thm}
+\begin{proof}[証明の方針]
+  ブラウン運動の場合と同様，区間を分割し，テイラー展開の足し合わせを考えた後，$\|\Pi\|\to0$の極限をとる．
+  極限ゼロとなる項を除けば，上式が得られる．
+\end{proof}
+
+\begin{note}[確率解析のまとめ]
+  微分形で書く（例のごとく，数学的に厳密ではない）
+  \begin{equation}
+    \diff f(t,X(t)) = f_t(t,X(t))\,\diff t + f_x(t,X(t))\,\diff X(t) + \frac{1}{2}f_{xx}(t,X(t))\,\diff X(t)\diff X(t)
+  \end{equation}
+  ここで，$\diff X(t)=\Delta(t)\,\diff W(t)+\Theta(t)\,\diff t$や2次変分の値などを用いることで
+  \begin{equation}
+    \diff f(t,X(t)) = f_t(t,X(t))\,\diff t + f_x(t,X(t))\Delta(t)\,\diff W(t) + f_x\Theta(t)\,\diff t + \frac{1}{2}f_{xx}(t,X(t))\Delta^2(t)\,\diff t
+  \end{equation}
+\end{note}
+
+\subsubsection{例題}
+\setcounter{equation}{24}
+\begin{expl}[一般化された幾何ブラウン運動]
+  $W(t),t\geq0$：ブラウン運動\\
+  $\F(t),t\geq0$：関連するフィルトレーション\\
+  $\alpha(t),\sigma(t)$：適合過程\\
+  伊藤過程$X(t)$
+  \begin{equation}
+    X(t) = \int_0^t\sigma(s)\,\diff W(s) + \int_0^t\left(\alpha(s)-\frac{1}{2}\sigma^2(s)\right)\,\diff s
+  \end{equation}
+  資産価格過程$S(t)$
+  \begin{equation}
+    S(t)=S(0)e^{X(t)}=S(0)\exp\left\{\int_0^t\sigma(s)\,\diff W(s) + \int_0^t\left(\alpha(s)-\frac{1}{2}\sigma^2(s)\right)\,\diff s\right\}
+    \label{eq:4.4.26}
+  \end{equation}
+  $f(x)=S(0)e^x$とすれば$S(t)=f(X(t))$である．
+  伊藤--デブリンの公式より
+  \begin{align}
+    \diff S(t) &= f'(X(t))\,\diff X(t) + \frac{1}{2}f''(X(t))\,\diff [X,X](t)\notag\\
+    &= S(t)\,\diff X(t) + \frac{1}{2}S(t)\sigma^2(t)\,\diff t\notag \\
+    &= S(t)\left(\sigma(t)\,\diff W(t) + \left(\alpha(t)-\frac{1}{2}\sigma^2(t)\,\diff t\right)\right) + \frac{1}{2}S(t)\sigma^2(t)\,\diff t\notag\\
+    &= \alpha(t)S(t)\,\diff t + \sigma(t)S(t)\,\diff W(t)
+  \end{align}
+  \begin{itemize}
+    \item 常に正でジャンプがなく，一つのブラウン運動によって引き起こされる資産価格過程のあり得るすべてのモデルを含む
+    \item $\alpha,\sigma$が定数の場合
+    \item $\alpha=0$の場合（$\sigma(t)$は時刻依存や確率的）
+  \end{itemize}
+\end{expl}
+
+\begin{thm}
+  $W(s),s\geq0$：ブラウン運動，\\
+  $\Delta(s)$：時刻に関する確定的な関数，\\
+  確率変数$I(t)=\int_0^t\Delta(s)\,\diff W(s)$を定義すると，$I(t)$は期待値ゼロ，分散$\int_0^t\Delta^2(s)\,\diff s$の正規分布に従う．
+\end{thm}
+\begin{proof}
+  $I(t)$はマルチンゲールなので，$\E I(t)=I(0)=0$．
+  伊藤の等長性より
+  \begin{equation*}
+    \operatorname{Var} I(t) = \E I^2(t) = \E\int_0^t\Delta^2(s)\,\diff s=\int_0^t\Delta^2(s)\,\diff s\quad \text{（$\Delta(s)$は確定的）} 
+  \end{equation*}
+  続いて正規分布に従うことを積率母関数を使って示す．
+  示したいのは
+  \begin{align}
+    \E e^{uI(t)} &= e^{\frac{1}{2}u^2\int_0^t\Delta^2(s)\,\diff s}\\
+    \iff 1&= \E\exp\left\{uI(t)-\frac{1}{2}\int_0^tu^2\Delta^2(s)\,\diff s\right\} \notag\\
+    &= \E\exp\left\{\int_0^tu\Delta(s)\,\diff W(s)-\frac{1}{2}\int_0^tu^2\Delta^2(s)\,\diff s\right\}
+  \end{align}
+  ここで，最右辺期待値の中身は((((((((()))))))))において，$\sigma(s)=u\Delta(s),\ \alpha(s)=0$の場合であり，マルチンゲールである．
+  よってその期待値は$\E e^0=1$となり，示した意識が得られる．
+\end{proof}
+
+\begin{expl}[Vasicekの金利モデル]
+  $W(t),t\geq0$：ブラウン運動，$\alpha,\beta,\sigma$：正の定数．
+  金利過程$R(t)$のVasicekモデルは
+  \begin{equation}
+    \diff R(t)=(\alpha-\beta R(t))\,\diff t + \sigma\,\diff W(t)
+  \end{equation}
+  で与えられる確率微分方程式で与えられる．
+
+  この解は
+  \begin{equation}
+    R(t) = e^{-\beta t}R(0) + \frac{\alpha}{\beta}(1-e^{-\beta t}) + \sigma e^{-\beta t}\int_0^t e^{\beta s}\,\diff W(s)
+    \label{eq:4.4.32}
+  \end{equation}
+  となる．
+  \begin{proof}
+    伊藤--デブリンの公式を使いたい
+    \begin{align*}
+      f(t,x) &= e^{-\beta t}R(0) + \frac{\alpha}{\beta}(1-e^{-\beta t}) + \sigma e^{-\beta t}x\\
+      &f_t(t,x) = -\beta e^{-\beta t}R(0) + \alpha e^{-\beta t} - \sigma\beta e^{-\beta t}x = \alpha - \beta f(t,x)\\
+      &f_x(t,x) = \sigma e^{-\beta t}\\
+      &f_{xx}(t,x) = 0\\
+      X(t) &= \int_0^t e^{\beta s}\,\diff W(s)\\
+      &\diff X(t) = e^{\beta t}\,\diff W(t)\\
+    \end{align*}
+    とすれば
+    \begin{align*}
+      \diff f(t, X(t)) &= f_t(t,X(t))\,\diff t + f_x(t,X(t))\,\diff X(t) + \frac{1}{2}f_{xx}(t,X(t))\,\diff [X,X](t)\\
+      &= (\alpha-\beta f(t,X(t)))\,\diff t + \sigma e^{-\beta t}\cdot e^{\beta t}\,\diff W(t)\\
+      &= (\alpha-\beta f(t,X(t)))\,\diff t + \sigma\,\diff W(t)
+    \end{align*}
+    これは$f(t,X(t))$が$R(t)$が満たすべき確率微分方程式\eqref{eq:4.4.32}を満たしていることを示している．
+    $f(0,X(0))=R(0)$と合わせて，$R(t)=f(t,X(t))$は\eqref{eq:4.4.32}の解である．
+  \end{proof}
+
+  Vasicek金利モデルの性質
+  \begin{itemize}
+    \item $e^\beta t$は確定的なので定理4.4.9より，$R(t)$は，平均$e^{-\beta t}R(0) + \frac{\alpha}{\beta}(1-e^{-\beta t})$，分散$\frac{\sigma^2}{2\beta}(1-e^{-2\beta t})$の正規分布に従う．
+    \item 正のパラメータ$\alpha,\beta,\sigma$の値によらず，$R(t)$が負になる確率は正（良くない性質）．
+    \item 平均回帰的：$R(t)$は$\alpha/\beta$に近づこうとする：
+    \begin{table}[h]
+      \centering
+      \begin{tabular}{cl}
+        $R(t)-\frac{\alpha}{\beta}$ & ドリフト項$=(\alpha-\beta R(t))\,\diff t$ \\\hline
+        正 & 負：押し下げる\\
+        $0$ & $0$：維持\\
+        負 & 正：引き上げる
+      \end{tabular}
+    \end{table}
+    \begin{align*}
+      R(0)=\frac{\alpha}{\beta} &\implies \E R(t) = \frac{\alpha}{\beta}\quad \forall t\geq0\\
+      R(0)\neq \frac{\alpha}{\beta} &\implies \E R(t) = e^{-\beta t}R(0) + \frac{\alpha}{\beta}(1-e^{-\beta t})\to \frac{\alpha}{\beta}\quad (t\to\infty)
+    \end{align*}
+  \end{itemize}
+\end{expl}
+
+\begin{expl}[CIR (Cox-Ingersoll-Ross) モデル]
+  $W(t),t\geq0$：ブラウン運動，$\alpha,\beta,\sigma$：正の定数に対し，
+  \begin{equation}
+    \diff R(t) = (\alpha - \beta R(t))\,\diff t + \sigma\sqrt{R(t)}\,\diff W(t)
+    \eqref{eq:4.4.34}
+  \end{equation}
+  Vasicekモデルとの関係は？
+  \begin{itemize}
+    \item CIRモデルでは$\diff W(t)$の項に$\sqrt{R(t)}$がついた．
+    \item これにより，$R(t)$がゼロに近づくと，$\diff W(t)$の影響が小さくなり，正のドリフト$\alpha\,\diff t$が効いて，$R(t)$を正の領域に押し戻す：金利$R(t)$が負にならない\footnote{当然$R(0)>0$が仮定されている}．
+    \item CIRモデルも平均回帰性を持つ．
+    \item CIRモデルは閉じた解を導くことはできない．
+  \end{itemize}
+
+  CIRモデルの$R(t)$の平均と分散を求めよう．
+
+  （式\eqref{eq:4.4.34}右辺に$R(t)$があると積分のときに面倒．$\diff W(t)$の方は伊藤積分の平均がゼロなのでそのままでいいか）\\
+  $f(t,x)=e^{\beta t}x$として伊藤--デブリンの公式を使う．
+  \begin{align}
+    \diff f(t,R(t)) &= f_t(t,R(t))\,\diff t + f_x(t,R(t))\,\diff R(t) + \frac{1}{2}f_{xx}(t,R(t))\,\diff [R,R](t)\notag\\
+    &= \beta e^{\beta t}R(t)\,\diff t + e^{\beta t}[(\alpha-\beta R(t))\,\diff t+\sigma\sqrt{R(t)}\,\diff W(t)]\notag\\
+    &= \alpha e^{\beta t}\,\diff t + \sigma e^{\beta t}\sqrt{R(t)}\,\diff W(t)\\
+    e^{\beta t}R(t) &= R(0) + \alpha\int_0^t e^{\beta u}\,\diff u + \sigma\int_0^t e^{\beta t}\sqrt{R(t)}\,\diff W(t)\notag\\
+    &= R(0) + \frac{\alpha}{\beta}(e^{\beta t}-1) + \sigma\int_0^t e^{\beta t}\sqrt{R(t)}\,\diff W(t)\notag\\
+    \E R(t) &= e^{-\beta t} R(0) + \frac{\alpha}{\beta}(1-e^{-\beta t})
+  \end{align}
+  ここで，伊藤積分の期待値がゼロであることを用いた．
+  これはVasicekモデルの平均と同じ値である．
+
+  続いて分散を考える．
+  上述の$f(t,R(t))=X(t)$とおいて，$g(x)=x^2$とすれば，伊藤--デブリンの公式より
+  \begin{align*}
+    \diff g(X(t)) &= 2X(t)\,\diff X(t) + \diff [X,X](t)\\
+    &= 2X(t)[\alpha e^{\beta t}\,\diff t + \sigma e^{\beta t}\sqrt{R(t)}\,\diff W(t)] + \sigma^2 e^{2\beta t}R(t)\,\diff t\\
+    X^2(t) &= X^2(0) + (2\alpha+\sigma^2)\int_0^t e^{\beta u}X(u)\,\diff u + 2\sigma\int_0^t e^{\frac{\beta u}{2}}\sqrt{X(u)}\,\diff W(u)\\
+    \E X^2(t) &= X^2(0) + (2\alpha+\sigma^2)\int_0^t e^{\beta u}\E X(u)\,\diff u \\
+    &= R^2(0) + (2\alpha+\sigma^2)\int_0^t e^{\beta u}\left[R(0) + \frac{\alpha}{\beta}(e^{\beta u}-1)\right]\,\diff u\\
+    &= R^2(0)+(2\alpha+\sigma^2)\left(\frac{1}{\beta}\left(R(0)-\frac{\alpha}{\beta}\right)(e^{\beta t}-1)+\frac{1}{2\beta}\cdot\frac{\alpha}{\beta}(e^{2\beta t}-1)\right)
+  \end{align*}
+  あとは，$\E R^2(t)=e^{-2\beta t}\E X^2(t)$と$\operatorname{Var}(R(t))=\E R^2(t)-(\E R(t))^2$から$R(t)$の分散が求まる（略）．
+\end{expl}
+
+\end{document}
