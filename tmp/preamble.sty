@@ -1,0 +1,147 @@
+% !TEX root = main.tex
+
+\usepackage{comment}
+
+%%%%%%%%%%%%%%
+% TITLE PAGE %
+%%%%%%%%%%%%%%
+
+\makeatletter
+
+\def\thesis#1{\def\@thesis{#1}}
+\def\id#1{\def\@id{#1}}
+\def\department#1{\def\@department{#1}}
+\def\entitle#1{\def\@entitle{#1}}
+
+\def\@maketitle{
+  \begin{center}
+    {\Large \@title \par}
+  \end{center}
+  \hfill{\normalsize \@date\par}
+  \hfill{\normalsize \@department \@id}\hspace{0.5cm}{\large \@author\par}
+  \vskip1em
+}
+\makeatother
+
+%%%%%%%%%%%%%%%%%
+% MARGIN & PAGE %
+%%%%%%%%%%%%%%%%%
+
+\usepackage{geometry}
+\geometry{
+    left=2.5cm,
+    right=2.5cm,
+    top=3cm,
+    bottom=3cm
+}
+
+
+%%%%%%%%%%%
+% FIGURES %
+%%%%%%%%%%% 
+
+\usepackage{graphicx}
+
+% CAPTION
+\begin{comment}
+
+\usepackage[list=true,labelformat=parens,subrefformat=simple]{subcaption}
+\renewcommand\thesubfigure{(\alph{subfigure})}
+\DeclareCaptionLabelFormat{opening}{#2}
+\captionsetup[figure]{
+  format=hang,
+  labelsep=period,
+  font=small,
+  %justification=RaggedRight,
+  singlelinecheck=1,
+}
+\captionsetup[table]{
+  format=hang,
+  labelsep=period,
+  %justification=RaggedRight,
+  singlelinecheck=1,
+}
+\captionsetup[subfigure]{
+  labelformat=opening,
+  format=hang, 
+  justification=raggedright,
+  singlelinecheck=0,
+}
+\end{comment}
+
+% 
+\newcommand{\figref}[1]{\figurename\ref{#1}}
+\newcommand{\tblref}[1]{\tablename\ref{#1}}
+
+
+
+%%%%%%%%%%%%%
+% NUMBERING %
+%%%%%%%%%%%%%
+
+% \makeatletter
+%   \renewcommand{\theequation}{\arabic{equation}} 
+%   \renewcommand{\thefigure}{\arabic{figure}}
+%   \renewcommand{\thetable}{\arabic{table}}
+% \makeatother
+
+
+%%%%%%%%%%%%%%%
+% MATHEMATICS %
+%%%%%%%%%%%%%%%
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{mathtools} % \coloneqq
+
+% 数式モードの行間
+\setlength{\jot}{5pt}
+
+\newenvironment{subeq}{%
+  \subequations\renewcommand{\theequation}{\theparentequation\,\alph{equation}}
+}{%
+  \endsubequations
+}
+
+\newcommand{\diff}{\mathrm{d}}
+
+
+%%%%%%%%%%%%%
+% FUNCTIONS %
+%%%%%%%%%%%%%
+
+\newcommand{\alert}[1]{\textcolor{red}{\textbf{(#1)}}}
+\newcommand{\pgref}[1]{\pageref{#1}ページ}
+\usepackage{newclude}
+
+\usepackage{ascmac} % screen, itembox, shadebox
+\usepackage{xcolor}
+
+\usepackage{enumitem}
+\setlist{listparindent=\parindent}
+
+
+
+%%%%%%%%%%%%%%%%
+% BIBLIOGRAPHY %
+%%%%%%%%%%%%%%%%
+% 何故かバグるのでここに置く
+
+\usepackage[numbers,sort&compress]{natbib}
+\renewcommand{\refname}{参考文献}
+\bibliographystyle{unsrtnat}
+
+\usepackage[pdfusetitle]{hyperref}
+\hypersetup{
+  unicode,
+  luatex,
+  pdfencoding=auto,
+  bookmarksnumbered=true,
+  colorlinks=false,
+  linkbordercolor={0 0 1},
+  hidelinks,
+}

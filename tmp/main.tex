@@ -1,0 +1,382 @@
+\documentclass[a4paper,lualatex,ja=standard,oneside,fleqn]{bxjsarticle}
+
+\usepackage{preamble}
+
+\usepackage{standalone,tikz}
+
+
+\pagestyle{plain}
+% \pagestyle{empty}
+\setlength\parindent{0pt}
+\geometry{
+    left=2.2cm,
+    right=2.2cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+\graphicspath{
+  {figures}
+}
+
+\title{QDTIS補足資料}
+\department{QD部}
+\id{}
+\author{朝倉響}
+\date{\today}
+
+\DeclareMathOperator*{\minimize}{minimize\ }
+\DeclareMathOperator*{\maximize}{maximize\ }
+
+\begin{document}
+
+\maketitle
+
+\section*{概要}
+本資料は，QDTISの課題に関連する機械学習手法についての補足資料である．
+基本はサンプルコードに記載の手法について，その概略を述べる．
+各手法について比較的一般的なことを述べているので，実際のデータに対してどうアプローチするかは示していない．
+「ここまで抑えておけば，サンプルコード以上のことをしなくても，ハイパーパラメータや各モデルの比較だけである程度の発表ができるんじゃないかな」という内容を目指す．
+
+\subsection*{表記}
+\begin{itemize}
+  \item $N$：データ数
+  \item $\bm{x}_n\in\mathbb{R}^M$：$n$番目の入力データ（特徴量）\\
+  生入力データをもとにいじった特徴量を含む．
+  例えば，定値$1$を要素として追加することも可能だし，特徴量の非線形変換を行うことも可能．
+  時系列データでは，過去$p$ステップのデータを含むこともある．
+  \item $y_n$：$n$番目の出力データ（目標値）
+  \item $\bm{w}\in\mathbb{R}^M$：重みベクトル
+\end{itemize}
+
+\section{課題1：株価予測}
+\setcounter{subsection}{-1}
+\subsection{線形回帰}
+入力データに線形な関数での予測$\bm{w}^\top\bm{x}_n$と正解$y_n$の誤差を最小化するような重みベクトル$\bm{w}$を求める．
+\begin{equation*}
+  \minimize_{\bm{w}}\sum_{n=1}^N(y_n-\bm{w}^\top\bm{x}_n)^2.
+\end{equation*}
+\begin{itemize}
+  \item 正則化：過学習を防止したい $\to$ Ridge / Lasso\\
+  （補足）モデルの次数$M$に対し，データ数$N$が少ない場合，過学習を引き起こす．
+  つまり，自由度の高いモデルが``今回のデータのランダムノイズ''をも表現しようとしてしまい，汎化性能が低下する．
+  過学習を起こしている場合，ノイズによるズレを無理やり表現するために，入力に対して急峻な変化を要求され，$w_j$の値が大きくなりがちになる．
+  そこで，$w_j$の大きさを抑えるように，正則化項を導入すればよい．
+\end{itemize}
+
+\subsection{SGDRegressor}
+確率的勾配降下法（Stochastic Gradient Descent）は最適化手法であって，回帰モデルの名前ではない．
+\begin{itemize}
+  \item 最急降下法：全データ点を使った目的関数の勾配方向に進むことで，最適解を探す．
+  線形回帰なら，上述の目的関数の勾配
+  \begin{equation*}
+    -2\sum_{n=1}^N(y_n-\bm{w}^\top\bm{x}_n)\bm{x}_n
+  \end{equation*}
+  \item 確率的勾配降下法：ランダムに（いくつか）選んだデータ点に対して，目的関数の勾配方向に進むことで，最適解を探す．
+  線形回帰なら
+  \begin{equation*}
+    -2\sum_{n:\text{ rondom}}(y_n-\bm{w}^\top\bm{x}_n)\bm{x}_n
+  \end{equation*}
+  \begin{itemize}
+    \item 最適化の際に全データの計算の必要がないため，計算が速くなり，ランダム性をいれることにより局所解に収束するリスクを減らすことができる\footnote{なんか収束が早いって言ってるサイト存在するけど，ウソな気がする．．そもそも収束するかどうかどうやって証明るんやっけ．learning rateの条件なかったっけ}．
+  \end{itemize}
+\end{itemize}
+\subsubsection*{ハイパーパラメータ}
+\begin{itemize}
+  \item \verb|loss|: 最適化したい損失関数
+  \begin{itemize}
+    \item \verb|squared_error|: 二乗和誤差
+    \item \verb|huber|: 誤差が小さいところでは二乗，大きいところでは絶対値誤差．滑らかなL1誤差．
+    \item \verb|epsilon_insensitive|: 誤差が$\varepsilon$以下のところは無視．$\max\{0,|y_n-\bm{w}^\top\bm{x}_n|-\varepsilon\}$
+    \item \verb|squared_epsilon_insensitive|: $\max\{0,(y_n-\bm{w}^\top\bm{x}_n)^2-\varepsilon\}$
+  \end{itemize}
+  \item \verb+penalty='l1'|'l2'|'elasticnet'|None+: 正則化関数
+  \item \verb|alpha|: 正則化項の重み．正則化項の強さを決める．大きくするほど，訓練データへの適合は弱くなる．
+  \item \verb|l1_ratio|: \verb|penalty='elasticnet'|でのL1正則化の割合
+\end{itemize}
+\verb|loss='squared_error', penalty='l2'|ならば，Ridge回帰と同じ（最適化手法が異なる）．
+
+\subsection{Ridge回帰}
+$2$次の正則化項
+\begin{equation*}
+  \minimize_{\bm{w}}\sum_{n=1}^N(y_n-\bm{w}^\top\bm{x}_n)^2 + \alpha \sum_{j=1}^M|w_j|^2
+\end{equation*}
+\subsubsection*{ハイパーパラメータ}
+\begin{itemize}
+  \item \verb|alpha|
+\end{itemize}
+
+\subsection{Lasso回帰}
+$1$次の正則化項\footnote{公式ドキュメントによると，Ridgeはサンプル数で割ってないのに，Lassoでは割っていたりする．したがって，必ずしも$\alpha$が似たような大きさになるとは限らない．}
+\begin{equation*}
+  \minimize_{\bm{w}}\sum_{n=1}^N(y_n-\bm{w}^\top\bm{x}_n)^2 + \alpha \sum_{j=1}^M|w_j|
+\end{equation*}
+
+
+\subsection*{RidgeとLassoの違い（大体まあまあの理解）}
+違いは正則化項の形のみ．
+誤差項（前半）と正則化項（後半）の等高線を考えたとき，それぞれの等高線の接点が最適点．
+図\ref{fig:ridge_lasso}から，Lasso（1次の正則化）のほうが$w^\ast_j=0$になりやすいことがわかる\footnote{l1（もしくはL1）最適化の解が疎（スパース）になる証明はそれなりに面倒だった記憶がある}．
+重み$w_j$が$0$になるということは，入力データ（特徴量）のうち，$j$番目の要素は予測では使わないということ．
+Lassoでは特にどの変数が重要かを知ることができる．
+
+\begin{figure}[htbp]
+  \centering
+  \includestandalone{ridge_lasso}
+  \caption{左：Ridge，右：Lasso．Lassoの場合$w^\ast_1=0$になっており，1つ目の特徴量は予測に使われていない：重要でないと考えられる．}
+  \label{fig:ridge_lasso}
+\end{figure}
+
+\subsection{Random Forest Regressor}
+\subsubsection{決定木}
+「一つの特徴量に対して，ある値を境にして，2つのクラスに分ける」を繰り返す木構造をつくる．
+ある入力$\bm{x}_n$の予測値は，分類されたクラスの訓練データの平均値．
+
+最適化は，各葉$k$を訪れ，$n\in A_k = \{\text{葉$k$に分類されるデータ点}\}$に対し，
+\begin{align*}
+  &\minimize_{j,t} \sum_{n\in{A_k}, x_{nj}\leq t}(y_n-\bar{y}_{L})^2 + \sum_{n\in{A_k}, x_{nj}>t}(y_n-\bar{y}_{R})^2\\
+  &\qquad\qquad\qquad\bar{y}_L=\text{average of }\{y_n\mid n\in{A_k}, x_{nj}\leq t\},\quad \bar{y}_R=\text{average of }\{y_n\mid n\in{A_k}, x_{nj}> t\}\\
+  &\minimize_{j,t} \text{（$\bm{x}_n$の$j$番目の要素が$t$以下のデータ点の分散）} + \text{（$t$より大きいデータ点の分散）}
+\end{align*}
+を計算し，これが元々の誤差$\displaystyle\sum_{n\in A_k}(y_n-\bar{y})^2$より小さくなっていれば，求めた要素$j^\ast$を$t^\ast$で分割．
+
+\subsubsection*{ハイパーパラメータ}
+\begin{itemize}
+  \item \verb|max_depth|: 決定木の深さ
+  \item \verb|min_samples_split|: 分割するための最小データ数
+  \item \verb|min_samples_leaf|: 葉を作るための最小データ数
+\end{itemize}
+\subsubsection*{特徴}
+\begin{itemize}
+  \item \verb|max_depth=None|など可能な限り細かく分割してしまうと，過学習しやすい $\to$ ランダムフォレスト
+  \item 全体では階段状の回帰になっており，非線形なモデルである．
+  ただし，分類されたクラス内で定値をとるので，各クラス内では線形モデルで，シンプルな構成である．
+\end{itemize}
+
+\subsubsection{ランダムフォレスト}
+元データからランダムにサンプリングし，そのサンプリングデータを用いて決定木を作る．
+複数の決定木を用い，それぞれの予測値の平均を取る．
+データのランダムサンプリングは被りを許容する（ブートストラップサンプリング）．
+\subsubsection*{ハイパーパラメータ}
+\begin{itemize}
+  \item \verb|n_estimators|: 決定木の数
+\end{itemize}
+
+\subsection{Support Vector Regression}
+予測値と正解の誤差を$\varepsilon$までは許容する．
+\begin{align*}
+  &\minimize_{\bm{w}} C\sum_{n=1}^NE_\varepsilon(y_n-\bm{w}^\top\bm{x}_n) + \frac{1}{2}\|\bm{w}\|^2\\
+  &E_\varepsilon(u) = \begin{cases}
+    0, & |u|\leq\varepsilon;\\
+    |u|-\varepsilon, & |u|>\varepsilon
+  \end{cases}
+\end{align*}
+
+\subsubsection*{特徴}
+\begin{itemize}
+  \item 下で述べるカーネル法の考え方により，特徴量$\bm{x}_n$の次元を可算無限まで拡張して考えられる：モデルの自由度・表現力が高い\footnote{SVMの話をするのにカーネルの話は不可避なので書いてるんですけど，線形回帰に同じような話はできないんだろうか．}
+  \item それらの特徴量の形を明示的に意識する必要はなく，新しい入力データ$\bm{x}$に対する予測値を計算できる
+  \item サポートベクトル：学習結果から得られたモデルで予測する際に使われるデータ点のこと．
+  最適解の解析から，予測の際に使われるデータ点は誤差が$\varepsilon$より大きい（$\varepsilon$チューブの外側の）点のみであることがわかる．
+  結果，予測の計算は簡略化される．
+\end{itemize}
+
+\subsubsection*{（補足）カーネル法}
+\label{sec:kernel}
+自力で特徴量を作ることを前提としていたが，生の入力データ$\bm{r}_n\in\mathbb{R}^L$に対して，何らかの変換$\bm{\phi}:\mathbb{R}^L\to\mathbb{R}^M$をして，特徴量入力データ$\bm{x}_n$を作っていたとする（$\bm{x}_n=\bm{\phi(\bm{r}_n)}$）．
+最適化問題は以下で書き換えられる．
+\begin{equation*}
+  \minimize_{\bm{w}} C\sum_{n=1}^NE_\varepsilon(y_n-\bm{w}^\top\bm{\phi}(\bm{r}_n)) + \frac{1}{2}\|\bm{w}\|^2
+\end{equation*}
+この最適化問題をいじくり回す（スラック変数を用いて目的関数を簡単化（不等式制約の追加）し，KKT条件から双対問題を導出する）と，
+\begin{align*}
+  &\maximize_{\bm{a},\widehat{\bm{a}}} -\frac{1}{2}\sum_{n=1}^N\sum_{m=1}^N (a_n-\widehat{a}_n)(a_m-\widehat{a}_m)\bm{\phi}(\bm{r}_n)^\top\bm{\phi}(\bm{r}_m) -\sum_{n=1}^N(a_n+\widehat{a}_n) + \sum_{n=1}^N(a_n-\widehat{a}_n)y_n\\
+  &\,\text{subject to}\quad
+  \begin{aligned}[t]
+    &0\leq a_n\leq C\\
+    &0\leq \widehat{a}_n\leq C\\
+    &\sum_{n=1}^N(a_n-\widehat{a}_n) = 0
+  \end{aligned}
+\end{align*}
+最適化問題の決定変数が$\bm{w}\in\mathbb{R}^M$から$\bm{a},\widehat{\bm{a}}\in\mathbb{R}^N$に変更されている．
+また，この双対問題の目的関数において，重要なのは$k(\bm{r},\bm{r}') \coloneqq \bm{\phi}(\bm{r})^\top\bm{\phi}(\bm{r}')$という関数$k$さえ決めてしまえば，$\bm{\phi}$の形は気にしなくてよく，$\bm{\phi}(\bm{r})$が無限次元でも問題ない．
+つまり，特徴量を無限個用意できる\footnote{たかだか可算無限なので，関数空間が非可算無限次元なことを考えると，たかが知れてる，のか？}！
+実際には自力で作った特徴量をもとに，カーネル法を用いることで，それを非線形変換したものを扱えることになる．
+\subsubsection*{ハイパーパラメータ}
+\begin{itemize}
+  \item カーネル関数
+  \begin{itemize}
+    \item linear: $k(\bm{x},\bm{x}')=\bm{x}^\top\bm{x}'$
+    \item poly : $k(\bm{x},\bm{x}')=\gamma(\bm{x}^\top\bm{x}'+r)^d$
+    \item rbf (Radial Basis Function): $k(\bm{x},\bm{x}')=\exp(-\gamma\|\bm{x}-\bm{x}'\|^2)$
+    \item sigmoid: $k(\bm{x},\bm{x}')=\tanh(\gamma \bm{x}^\top\bm{x}'+r)$
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{ニューラルネットワーク}
+\begin{itemize}
+  \item 入力層: $x_i,\ i=1,2,\ldots,M$
+  \item 隠れ層$1$: $h^{(1)}_j=\left(\bm{w}^{(1)}_j\right)^\top\bm{x},\ j=1,2,\ldots,H^{(1)}$
+  \item 隠れ層$\ell=2,3,\ldots,L$: $h^{(\ell)}_j=\left(\bm{w}^{(\ell)}_j\right)^\top\bm{\phi}\left(\bm{h}^{(\ell-1)}\right),\ j=1,2,\ldots,H^{(\ell)}$
+  \item 出力層：$y=\left(\bm{w}^{(L)}\right)^\top\bm{\phi}\left(\bm{h}^{(L)}\right)$
+\end{itemize}
+\begin{itemize}
+  \item 出力層の$y$と正解の誤差を最小にするように重み$\bm{w}$を最適化する（誤差逆伝播法）．
+  \item $\bm{\phi}: \mathbb{R}^{H^{(\ell)}}\to\mathbb{R}^{H^{(\ell)}}$は同じ非線形関数（活性化関数）$\varphi:\mathbb{R}\to\mathbb{R}$が$H^{(\ell)}$個並んだもの．
+\end{itemize}
+\subsubsection*{特徴}
+\begin{itemize}
+  \item 非線形なモデルで，複雑な関数を表現できる\footnote{たしか，1隠れ層の3層ニューラルネットワークも，隠れ層のノード数がある程度以上あれば，任意の連続関数の近似ができるハズ（普遍性原理）}．
+  \item 中身がブラックボックス化しやすく，どの特徴量が重要かを知ることは難しい．
+  \item 過去$p$ステップの特徴量をすべて入力に入れるることで，時系列データをそれっぽく扱うこともできる
+\end{itemize}
+\subsubsection*{ハイパーパラメータ}
+\begin{itemize}
+  \item \verb|hidden_layer_sizes|: 隠れ層のユニット数（$(H^{(1)},H^{(2)},\ldots,H^{(L)},)$という配列を指定）
+  \item \verb|activation|: 活性化関数\footnote{何を選べばいいか明確な指針があるわけではないが，ReLUがデフォルトである理由は，勾配消失問題を回避しやすいためだと思われる．}
+  \begin{itemize}
+    \item \verb|identity|: $\varphi(x) = x$
+    \item \verb|logistic|: $\varphi(x) = 1 / (1 + \exp(-x))$
+    \item \verb|tanh|
+    \item \verb|relu|（デフォルト）: $\varphi(x) = \max(0, x)$
+  \end{itemize}
+  \item \verb|solver|: 最適化手法
+  \begin{itemize}
+    \item \verb|lbfgs|: ニュートン法（最急降下法が勾配情報のみ使うのに対し，曲率（2次微分）の情報も使って収束性を向上．ただし計算量は増える（はず）．確定的な方法なので，局所解に陥りやすい（はず））
+    \item \verb|sgd|: 確率的勾配降下法（上述）
+    \item \verb|adam|: Adam（Adaptive Moment Estimation）法（SGDに更新が振動的にならない工夫（モーメンタム\footnote{SGDは少しのサンプルをランダムに選んで勾配を計算するので，ばらつきやすく，安定しにくい．今回の勾配（更新量）に前回の更新量を足すことで，ばらつきを抑え，アルゴリズムを安定化させられる．}$+$RMSprop\footnote{勾配の2乗の移動平均の逆数を利用することで，急激に勾配が大きくなったら更新量を抑え，勾配が小さくなっても更新量を保つ．}が追加されたもの）
+  \end{itemize}
+\end{itemize}
+
+\vspace{2\baselineskip}
+
+（ここからは個人的にできそうだなと思うモデルたち：いわゆる時系列解析っぽいやつら．
+そもそも時系列データを扱っているのだから，こっちのほうが妥当な気もする．
+Pythonでは\verb|statsmodels|とかで実装できるハズ）
+
+\subsection{多次元自己回帰モデル（ARモデル）}
+自己回帰モデルは「時点$n$におけるモデル出力が時点$n$以前のモデル出力に依存する確率過程」（Wikipedia）なので，入出力が同じ次元じゃなくてはならない（はず．多分．ウソかも）．
+\begin{equation*}
+  \begin{bmatrix}
+    \bm{x}_n\\
+    y_n
+  \end{bmatrix} = \sum_{k=1}^K\mathrm{A}_k\begin{bmatrix}
+    \bm{x}_{n-k}\\
+    y_{n-k}
+  \end{bmatrix} + \bm{b} + \bm{\varepsilon}_n,\quad \bm{\varepsilon}_n\sim\mathcal{N}(\bm{0},\bm{\Sigma})
+\end{equation*}
+というモデルに対し，最適な$\mathrm{A}_k,\bm{b}$を求める．
+ただし，このままだとモデルに現時点の情報を組み込めないため，ベクトルは$[\bm{x}_{n+1}^\top,y_n]^\top$とかでもよいかもしれない．
+また，ARモデルはトレンドを持つようなデータには適用できないため，差分などを生成してから適用することもある．
+
+参考：\verb|statsmodels.tsa.vector_ar.var_model.VAR|
+
+\subsubsection{ARMAモデル}
+自己回帰モデルに移動平均モデルを組み合わせたもの．
+\begin{equation*}
+  \begin{bmatrix}
+    \bm{x}_n\\
+    y_n
+  \end{bmatrix} = \sum_{k=1}^{K_p}\mathrm{A}_k\begin{bmatrix}
+    \bm{x}_{n-k}\\
+    y_{n-k}
+\end{bmatrix} + \sum_{k=1}^{K_q}\mathrm{C}_k\bm{\varepsilon}_{n-k} + \bm{b} + \bm{\varepsilon}_n
+\end{equation*}
+参考：\href{https://www.statsmodels.org/stable/examples/notebooks/generated/statespace_varmax.html}{statsmodels.tsa.statespace.varmax}
+
+\subsection{状態空間モデル}
+有効なパッケージが見つかってないので，紹介だけ
+\begin{align*}
+  \bm{z}_n &= \mathrm{A}\bm{z}_{n-1} + \mathrm{B}\bm{x}_{n-1} + \bm{\varepsilon}_t\\
+  y_n &= \mathrm{C}\bm{z}_n + \mathrm{D}\bm{x}_n + \eta_n
+\end{align*}
+よく知らないけど，時系列分析の文脈ではもう少し簡単な（入力項が存在しなかったり，$\mathrm{A},\mathrm{C}$行列が単位行列だったりする）モデルを指すらしい．
+そうすると，システムが明示的にかけるから，あとはカルマンフィルタで状態を当てるだけってそういうわけらしい．
+
+\section{課題2：行動予測}
+\subsection{ロジスティック回帰}
+交差エントロピー型誤差関数（$y_n=0$ or $1$）
+\begin{align*}
+  &\minimize_{\bm{w}} -\sum_{n=1}^N y_n\log\sigma(\bm{w}^\top\bm{x}_n) + (1-y_n)\log(1-\sigma(\bm{w}^\top\bm{x}_n))\\
+  &\qquad\qquad\qquad\sigma(u) = \frac{1}{1+\exp(-u)}
+\end{align*}
+\subsubsection*{（補足）交差エントロピー誤差関数}
+誤差関数の指数を考えると
+\begin{equation*}
+  \maximize_{\bm{w}}\prod_{n=1}^N\sigma(\bm{w}^\top\bm{x}_n)^{y_n}(1-\sigma(\bm{w}^\top\bm{x}_n))^{1-y_n}
+\end{equation*}
+シグモイド関数$\sigma:(-\infty,\infty)\to(0,1)$は線形回帰で得られる予測値$\bm{w}^\top\bm{x}$を確率として解釈し直すことに対応している．
+交差エントロピー誤差関数は，この確率が正解ラベル$y_n$にどれだけ適合しているかを表す．
+なお，これはベイズ的には尤度の最大化に相当する．
+
+二乗和誤差関数$\sum_{n=1}^N(y_n-\sigma(\bm{w}^\top\bm{x}_n))^2$を使ってもよいが，シグモイド関数の形から正解の$0,1$付近で勾配が非常に小さくなり，更新が遅くなるため，交差エントロピー誤差関数がよく用いられる
+\begin{figure}[htbp]
+  \centering
+  \includestandalone{sigmoid}
+  \caption{シグモイド関数}
+  \label{fig:sigmoid}
+\end{figure}
+
+
+\subsection{Support Vector Classification}
+いわゆるSupport Vector Machine (SVM)で重要なのは，分類の境界面から最も近い点（サポートベクトル）のその距離（マージン）を最大化する，ということである．
+$\bm{x}$の空間，すなわち$\mathbb{R}^M$空間での超平面$\bm{w}^\top\bm{x}+w_0=0$を用いて，2つのクラスを分離する．
+いま，一旦この超平面ですべての訓練データ点を正しく分類できたとする．
+いくつかあり得る超平面の中で最も適切な超平面は，超平面からの距離$\frac{|\bm{w}^\top\bm{x}_n+w_0|}{\|\bm{w}\|}$が最も小さい点のそれが最大になるものである（$y_n=-1$ or $1$）．
+\begin{equation*}
+  \maximize_{\bm{w},w_0} \min_{n} \frac{y_n(\bm{w}^\top\bm{x}_n+w_0)}{\|\bm{w}\|}
+\end{equation*}
+ある定数$\kappa$を用いて$\kappa\bm{w},\kappa w_0$と定数倍しても，上の式に変化はない．
+そこで超平面との距離が最も近い点について$y_n(\bm{w}^\top\bm{x}_n+w_0)=1$と固定すると
+\begin{align*}
+  &\maximize_{\bm{w},w_0} \frac{1}{\|\bm{w}\|}\quad \iff\quad\minimize_{\bm{w},w_0} \|\bm{w}\|^2\\
+  &\,\text{subject to}\quad y_n(\bm{w}^\top\bm{x}_n+w_0)\geq 1,\quad \forall n
+\end{align*}
+% が，これは以下と同値
+% \begin{align*}
+%   \minimize_{\bm{w},w_0} & C\sum_{n=1}^NE_\infty(y_n(\bm{w}^\top\bm{x}_n+w_0)-1) + \|\bm{w}\|^2\\
+%   &E_\infty(u)=\begin{cases}
+%     0, & u\geq 0;\\
+%     \infty, & u<0
+%   \end{cases}
+% \end{align*}
+% （$E_\infty$により，制約が満たされることが保証される）
+
+ここまでの分類器は「超平面ですべての訓練データ点を正しく分類できた」としていた．
+これは「超平面との距離が最も近い点について$y_n(\bm{w}^\top\bm{x}_n+w_0)=1$と正規化できる」というところ，すなわち「すべての$n$に対し，$y_n(\bm{w}^\top\bm{x}_n+w_0)\geq1$を満たす」という条件に表れている．
+そこで，この条件を少し緩和し「多少はこの不等式を破ってもいいが，その分ペナルティを加える」とする．
+\begin{align*}
+  &\minimize_{\bm{w},w_0} C\sum_{n=1}^N \xi_n + \|\bm{w}\|^2\\
+  &\,\text{subject to}\quad y_n(\bm{w}^\top\bm{x}_n+w_0)\geq 1-\xi_n,\quad \xi_n\geq 0,\quad \forall n
+\end{align*}
+
+\subsubsection*{（補足）カーネル法}
+SVCにおいても，カーネル法を用いることができる．
+再び，生の入力データ$\bm{r}_n\in\mathbb{R}^L$に対し，何らかの変換$\bm{\phi}:\mathbb{R}^L\to\mathbb{R}^M$をして，特徴量入力データ$\bm{x}_n$を作っていたとする（$\bm{x}_n=\bm{\phi(\bm{r}_n)}$）．
+KKT条件を考え，双対問題を導出すれば結局，
+\begin{align*}
+  &\maximize_{\bm{a}}\sum_{n=1}^N a_n - \frac{1}{2}\sum_{n=1}^N\sum_{m=1}^N a_na_my_ny_m\bm{\phi}(\bm{r}_n)^\top\bm{\phi}(\bm{r}_m)\\
+  &\,\text{subject to}\quad
+  \begin{aligned}[t]
+    &0\leq a_n\leq C\\
+    &\sum_{n=1}^Na_ny_n = 0
+  \end{aligned}
+\end{align*}
+\ref{sec:kernel}節での議論とまったく同様に，カーネル関数を用いることで，特徴量を無限個用意できる．
+
+
+\subsection{決定木}
+分類問題用に書き換える
+\begin{align*}
+  &\minimize_{j,t} \sum_{y=0,1}p_L(t)(1-p_L(t)) + \sum_{y=0,1}p_R(t)(1-p_R(t))\\
+  &\qquad\qquad\qquad p_L(y) = \frac{\displaystyle\sum_{n\in{A_k}, x_{nj}\leq t}1-|y_n-y|}{\displaystyle\sum_{n\in{A_k}, x_{nj}\leq t}1}
+  =[\text{$n\in{A_k},x_{nj}\leq t$の中で，$y_n=y$のサンプル数確率}]\\
+  &\qquad\qquad\qquad
+  p_R(y) = \frac{\displaystyle\sum_{n\in{A_k}, x_{nj}> t}1-|y_n-y|}{\displaystyle\sum_{n\in{A_k}, x_{nj}> t}1}
+\end{align*}
+
+\subsection{ランダムフォレスト}
+略
+
+  % \bibliography{ref}
+\end{document}
