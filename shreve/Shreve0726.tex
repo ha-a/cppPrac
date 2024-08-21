@@ -182,7 +182,7 @@ $S_i(t)$のボラティリティは$\sigma_i(t)$．
     \item $\PP$と$\P$が同値
     \item 割り引かれた株価$D(t)S_i(t)$が$\PP$の下でマルチンゲール（$\forall i=1,\ldots,m$）
   \end{enumerate}
-  を満たす確率測度$\PP$：リスク中立測度．
+  を満たす確率測度$\PP$：リスク中立確率測度．
 \end{dfn}
 割り引かれた株価過程
 \begin{itemize}
@@ -193,9 +193,46 @@ $S_i(t)$のボラティリティは$\sigma_i(t)$．
   \begin{align}
     \diff(D(t)S_i(t)) &= D(t)\diff S_i(t)+S_i(t)\diff D(t)+\diff S_i(t)\diff D(t)\notag\\
     &= D(t)\left(\alpha_i(t)S_i(t)\,\diff t+\sigma_i(t)S_i(t)\,\diff B_i(t)\right)-S_i(t)R(t)D(t)\,\diff t\notag\\
-    &= D(t)S_i(t)\left[(\alpha_i(t)-R(t))\,\diff t+\sigma_i(t)\,\diff B_i(t)\right]
+    &= D(t)S_i(t)\left[(\alpha_i(t)-R(t))\,\diff t+\sigma_i(t)\,\diff B_i(t)\right]\label{eq:5.4.15}
   \end{align}
 \end{itemize}
+
+【リスク中立確率測度を探したい】
+\begin{itemize}
+  \item 以下を満たす市場価格過程$\Theta_{j}(t)$があれば
+  \begin{equation}
+    \diff(D(t)S_i(t)) = D(t)S_i(t)\sum_{j=1}^d\sigma_{ij}(t)[\Theta_{j}(t)\,\diff t+\diff W_j(t)]
+    \label{eq:5.4.16}
+  \end{equation}
+  \item 多次元ギルサノフの定理から，同値な確率測度$\PP$を構築でき，$\PP$のもとでのブラウン運動$\WW(t)$で
+  \begin{equation}
+    \diff (D(t)S_i(t)) = D(t)S_i(t)\sum_{j=1}^d\sigma_{ij}(t)\,\diff \WW_j(t)
+  \end{equation}
+  を満たすものが存在する．
+  \item $\PP$のもとで$D(t)S_i(t)$がマルチンゲールになったので，$\PP$がリスク中立測度
+\end{itemize}
+結局，\eqref{eq:5.4.16}を満たす$\Theta_{j}(t)$が存在すればリスク中立確率測度が存在する．
+\eqref{eq:5.4.15}と見比べれば，解くべき方程式は
+\begin{equation}
+  \alpha_i(t)-R(t) = \sum_{j=1}^d\sigma_{ij}(t)\Theta_{j}(t),\quad i=1,\ldots,m
+\end{equation}
+という$d$変数（過程），$m$次元方程式：\textbf{リスクの市場価格方程式}．
+
+\subsubsection*{リスク中立測度が存在すると何が嬉しいか}
+\setcounter{thm}{6}
+\begin{thm}[資産価格評価の第一基本定理]
+  市場モデルにリスク中立確率測度が存在するならば，そのモデルに裁定は存在しない．
+\end{thm}
+\setcounter{thm}{5}
+\begin{dfn}[裁定]
+  裁定とは，ポートフォリオ価値過程で$X(t)$で，
+  \begin{equation}
+    X(0)=0,\quad\P\{X(T)\geq 0\}=1,\quad\P\{X(T)>0\}>0\quad(T>0)
+  \end{equation}
+  つまり，初期資金ゼロで初めて，どこかの時刻$T$で「確実に損をしない」上，「得をする確率が厳密に正」となる取引手法
+\end{dfn}
+
+
 
 
 \end{document}
