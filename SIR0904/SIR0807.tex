@@ -25,6 +25,8 @@
 \newtheorem*{thm*}{Theorem}
 \newtheorem{prop}[thm]{Proposition}
 \newtheorem*{prop*}{Proposition}
+\theoremstyle{definition}
+\newtheorem{exer}[thm]{Exercise}
 
 \theoremstyle{definition}
 \newtheorem{rem}[thm]{Remark}
@@ -38,6 +40,9 @@
 \newcommand{\FP}{\mathbf{FP}}
 \newcommand{\BC}{\mathbf{BC}}
 \newcommand{\BP}{\mathbf{BP}}
+\newcommand{\Berm}{\mathbf{Berm}}
+\newcommand{\PS}{\mathbf{PS}}
+\newcommand{\PSwpt}{\mathbf{PSwpt}}
 \newcommand{\diff}{\mathrm{d}}
 
 % \renewcommand{\labelenumi}{(\roman{enumi})}
@@ -54,224 +59,310 @@
 
 
 
-\title{Stochastic Interest Rates 第4回}
+\title{Stochastic Interest Rates 第8回}
 \dept{QD部}
 \author{朝倉響}
-\date{2024年9月4日}
+\date{2024年10月2日}
 
 \begin{document}
 \maketitle
 
 \section*{概要}
 \begin{itemize}
-  \item フォワード測度を用いた金利スワップ価格付け
-  \item フォワード速度を用いたオプション価格付け（BS式）
-  \item キャップとフロア
+  \item 
 \end{itemize}
 
-\setcounter{section}{2}
-\setcounter{subsection}{4}
-\setcounter{equation}{11}
-\subsection{FRAと金利スワップ：フォワード測度}
-FRA：時刻$T$でスポットレート$L(S,T)$払い，固定$K$受け：時刻$T$で$\tau(K-L(S,T))$のペイオフ（$\tau=T-S$）．
-フォワード測度$P_T$の下，時刻$t$でのFRAの価値$V(t)$は
-\begin{align*}
-  V(t) &= B(t,T)\E_{P_T}(\tau(K-L(S,T))\mid\F_t) &&\\
-  &= B(t,T)(\tau K - \tau\E_{P_T}(L(S,T)\mid\F_t)) &&\text{（$K$は$\F_t$--可測）} \\
-  &= B(t,T)(\tau K - \tau F(t;S,T)) && \text{（式(2.11)）}
-\end{align*}
-これが$0$となるような$K$は$K=F(t;S,T)$である．
+\setcounter{section}{3}
+\setcounter{subsection}{5}
+\setcounter{equation}{27}
+\setcounter{thm}{8}
+\subsection{Hull--Whiteモデルにおけるバミューダンスワップション}
+Hull--Whiteモデルを使用して，非バニラ商品のバミューダンスワップションの価格評価を行う．
 
-金利スワップ：元本$1$\$で時刻$T_1,T_2,\ldots,T_n$でスポットレート$L(T_{i-1},T_i)$受け，固定金利$K$払い（ペイヤーズスワップ）．
+リスク中立確率の下，$0$時点での期間構造にピッタリ合うHull--White短期金値モデルが得られた（式(3.14)）が，ここではエキゾチック商品のためにフォワード測度を用いる．
 
-キャッシュフローの時刻$t$での価値$V(t)$は，上述のFRAの価値の和である．
-\begin{align*}
-  \mathbf{PS}(t) &= \sum_{i=1}^n B(t,T_i)\E_{P_{T_i}}(\tau_i(L(T_{i-1},T_i))-K\mid\F_t) \\
-  &= \sum_{i=1}^n B(t,T_i)(\tau_i F(t;T_{i-1},T_i)-K) \\
-  &= B(t,T_0) - B(t,T_n) -K\sum_{i=1}^n \tau_iB(t,T_i)
-\end{align*}
-最後の等号では，
-\begin{equation*}
-  \tau_i F(t;S,T) = \frac{B(t,T_{i-1})}{B(t,T_i)} - 1
-\end{equation*}
-を用いたが，このディスカウントファクターと現在価値計算の割引に用いるディスカウントファクターはシングルカーブの世界でのみ一致し，上の式のようにきれいな形になる．
-
-\subsection{フォワード測度のもとでのオプション価格}
-仮定：ゼロクーポンボンド$B(t,T)$が以下のSDEに従う（$r(t),\Sigma(t,T)$は確定的）
+\subsubsection*{フォワード測度のもとでのHull--Whiteモデル}
+仮定
 \begin{equation}
-  \diff B(t,T) = B(t,T)r(t)\diff t + B(t,T)\Sigma(t,T)\diff W(t) \tag{2.8}\label{eq:2.8}
+  \diff B(t,T) = B(t,T)r(t)\,\diff t + B(t,T)\Sigma(t,T)\,\diff W(t) \tag{2.8}
+  \label{eq:2.8}
 \end{equation}
+のとき，ギルサノフの定理から以下が成り立つ（$W(t)$と$W^T(t)$はそれぞれリスク中立測度$Q$とフォワード測度$P_T$に対するブラウン運動）
+\begin{equation*}
+  W^T(t)=W(t)-\int_0^t \Sigma(u, T) \,\diff u \quad \text { for all } t \in[0, T]
+\end{equation*}
 
-満期$S$，ストライク$K$の$T$満期ゼロクーポン債のコールオプション（$0<S<T$）． 
-時刻$t<S$での価値$V(t)$は（Assumption~2.1より時刻$S$でペイオフ$(B(S,T)-K)^+$となることを念頭に）
+Hull--White モデルにおける割引債の価格
+\begin{equation}
+  B(t, T)=\exp \left(-r(t) D(t, T)-  \int_t^T \theta(u) D(u, T) \diff u +\frac{1}{2} \int_t^T \sigma(u)^2 D(u, T)^2 \diff u\right) \tag{3.10}
+\end{equation}
+より，伊藤の公式を用いて
 \begin{align*}
-  V(t) &= B(t)\E_Q\left(\frac{(B(S,T)-K)^+}{B(S)}\relmiddle|\F_t\right)\\
-  &= B(t)\E_Q\left(\frac{B(S,T)}{B(S)}\I_{\{B(S,T)\geq K\}}\relmiddle|\F_t\right) - KB(t)\E_Q\left(\frac{1}{B(S)}\I_{\{B(S,T)\geq K\}}\relmiddle|\F_t\right)\\
+  \diff B(t,T) &= (-\diff(r(t)D(t,T)) - \theta(t)D(t,T)\,\diff t + \frac{1}{2} \sigma(t)^2D(t,T)^2\,\diff t)B(t,T) \\
+  &= (\text{略})\,\diff t - B(t,T)D(t,T)\,\diff r(t) \\
+  &= (\text{略})\,\diff t - B(t,T) \sigma(t)D(t,T)\,\diff W(t)
 \end{align*}
-第1項，第2項それぞれでニューメレールの変換を行う．
+式\eqref{eq:2.8}と見比べて，$\Sigma(t,T) = -\sigma(t)D(t,T)$である．
+よって上記ギルサノフの定理も用いて
+\begin{align}
+  \diff r(t) &= (\theta(t) - \alpha r(t)) \,\diff t + \sigma(t)\,\diff W(t) \notag\\
+  &= (\theta(t) - \alpha r(t) - \sigma(t)^2D(t,T))\,\diff t + \sigma(t)\,\diff W^T(t) 
+\end{align}
+（Exercise~3.9）
+\stepcounter{thm}
+
+時刻$0$で期間構造がピッタリ合うHull--Whiteモデルでの短期金利は以下で求まっていた
+\begin{equation}
+  \begin{aligned}
+    r(s) &=  (r(t)-f(0, t)) \mathrm{e}^{-\alpha(s-t)}+f(0, s)+\int_0^s \sigma(u)^2 D(u, s) \mathrm{e}^{-\alpha(s-u)} \diff u  \\
+    &\quad -\int_0^t \sigma(u)^2 D(u, t) \mathrm{e}^{-\alpha(s-u)} \diff u+\int_t^s \sigma(u) \mathrm{e}^{-\alpha(s-u)} \diff W(u)  
+  \end{aligned}
+  \tag{3.14}
+  \label{eq:3.14}
+\end{equation}
+再び同じ測度変換を適用して簡略化すると，$P^T$測度のもとで$r(T)$は以下のように表される
+
+\begin{align}
+\begin{aligned}
+r(T)= & (r(t)-f(0, t)) \mathrm{e}^{-\alpha(T-t)}+f(0, T) \\
+& +\int_0^t \sigma(u)^2 \frac{\mathrm{e}^{-\alpha(T+t-2 u)}-\mathrm{e}^{-2 \alpha(T-u)}}{\alpha} \diff  u+\int_t^T \sigma(u) \mathrm{e}^{-\alpha(T-u)} \diff  W^T(u)
+\end{aligned}
+\label{eq:3.29}
+\end{align}
+
 \begin{itemize}
-  \item 第1項：$B(t)\to B(t,T)$（$Q\to P_T$）．
-  \item 第2項：$B(t)\to B(t,S)$（$Q\to P_S$）．
+  \item $r(t)$が与えられた下での$r(T)$は$\sigma(u), u\in[0,t]$のみに依存する（$\sigma(u), u\in[t,s]$には依存しない）
+  \item リスク中立測度のもとでの式\eqref{eq:3.14}に比べてシンプル
 \end{itemize}
-\begin{align}
-  V(t) &= B(t,T)\E_{P_T}\left(\I_{\{B(S,T)\geq K\}}\mid\F_t\right) - KB(t,S)\E_{P_S}\left(\I_{\{B(S,T)\geq K\}}\mid\F_t\right) \notag\\
-  &= B(t,T)P_T\left(B(S,T)\geq K\mid\F_t\right) - KB(t,S)P_S\left(B(S,T)\geq K\mid\F_t\right) 
-\end{align}
-測度$P_S,P_T$それぞれのもとでの$B(S,T)$の分布がわかればよい．
 
-まず$P_S$について考える．
-準備として，フォワードボンド価格$\FP(t;S,T)=\frac{B(t,T)}{B(t,S)}$を考える．
-$f(x,y)=\frac{x}{y}$について伊藤の公式より
-\begin{align*}
-  f_x &= \frac{1}{y},\ f_y = -\frac{x}{y^2},\ f_{xx} = 0,\ f_{yy} = \frac{2x}{y^3},\ f_{xy} = -\frac{1}{y^2} \\
-  \diff\left(\frac{x}{y}\right) &= \frac{x}{y}\left(\frac{\diff x}{x} - \frac{\diff y}{y} - \frac{\diff x\diff y}{xy} + \frac{\diff y\diff y}{y^2}\right)
-\end{align*}
-式\eqref{eq:2.8}より
-\begin{align}
-  \diff\FP(t;S,T) &= \FP(t;S,T)(r(t)\diff t+\Sigma(t,T)\diff W(t) - r(t)\diff t -\Sigma(t,S)\diff W(t)\notag\\
-  &\hspace{18em} - \Sigma(t,S)\Sigma(t,T)\diff t + \Sigma(t,S)\Sigma(t,S)\diff t) \notag\\
-  &= \FP(t;S,T)(\Sigma(t,T)-\Sigma(t,S))\diff W(t) - \FP(t;S,T)\Sigma(t,S)(\Sigma(t,T)-\Sigma(t,S))\diff t 
-  \label{eq:2.13}
-\end{align}
-Proposition~2.3より，$B(t,S)$が\eqref{eq:2.8}に従うとき，フォワード測度$P_S$に関するラドンニコディム微分は
-\begin{equation*}
-  \frac{\diff P_S}{\diff Q} = \exp\left(\int_0^S\Sigma(u,S)\,\diff W(u) - \frac{1}{2}\int_0^S\Sigma(u,S)^2\,\diff u\right)
-\end{equation*}
-ギルサノフの定理より
-\begin{equation}
-  W^S(t) = W(t) - \int_0^t\Sigma(u,S)\,\diff u 
-\end{equation}
-は$P_S$に関してブラウン運動である．
-式\eqref{eq:2.13}を書き直せば
-\begin{equation}
-  \diff\FP(t;S,T) = \FP(t;S,T)(\Sigma(t,T)-\Sigma(t,S))\diff W^S(t) 
-\end{equation}
-これと，$B(S,T)=\FP(S;S,T)$より
-\begin{align}
-  B(S,T) &= \FP(S;S,T) \notag\\
-  &= \FP(t;S,T)\exp\left(\int_t^S(\Sigma(u,T)-\Sigma(u,S))\,\diff W^S(u)-\frac{1}{2}\int_t^S(\Sigma(u,T)-\Sigma(u,S))^2\,\diff u\right) \label{eq:2.16}
-\end{align}
-\begin{equation*}
-  \ln\frac{B(S,T)}{\FP(t;S,T)} = \int_t^S(\Sigma(u,T)-\Sigma(u,S))\,\diff W^S(u) - \frac{1}{2}\int_t^S(\Sigma(u,T)-\Sigma(u,S))^2\,\diff u
-\end{equation*}
-ここで$\ln\frac{B(S,T)}{\FP(t;S,T)}$の分布を考える．
-$\Sigma$は確定的で，$W^S$は$P_S$のもとでブラウン運動なので，右辺は$\F_t$と独立で，$P_S$のもと正規分布に従う．
-伊藤積分（第1項）は平均$0$，分散\footnote{伊藤の等長性より}$\int_t^S(\Sigma(u,T)-\Sigma(u,S))^2\,\diff u$の正規分布に従うため，上式全体で$\ln\frac{B(S,T)}{\FP(t;S,T)}$は$P_S$のもと
-\begin{align*}
-  \text{平均} &: -\frac{1}{2}\int_t^S(\Sigma(u,T)-\Sigma(u,S))^2\,\diff u = -\frac{1}{2}v(t,S)\\
-  \text{分散} &: \int_t^S(\Sigma(u,T)-\Sigma(u,S))^2\,\diff u = v(t,S)
-\end{align*}
-の正規分布に従う．
 
-以上より
+\subsubsection*{バミューダンスワップション}
+ペイヤーズバミューダンスワップション
+\begin{itemize}
+  \item 元本$1$
+  \item ストライク$K$
+  \item $T_k(k=0, \ldots, l),l<n$でペイヤーズスワップを始める権利．
+  \begin{itemize}
+    \item リセット日：$T_0, \ldots, T_{n-1}$
+    \item 支払日：$T_1, \ldots, T_n$
+    \item スワップレート：$K$
+  \end{itemize}
+\end{itemize}
+以下では$l=n-1$とし，時刻$0$での価値を$\Berm(0)$と書く．
+
+$T_i$時点で権利行使されていないとすると，オプション保持者は$T_{i+1}$までオプションを持ち続けるか，即座に行使するかを決定しなければならない．
+このときの行使価値は
+\begin{equation*}
+  \mathrm{E}(T_i) = (\PS(T_i))^+
+\end{equation*}
+継続価値は
+\begin{equation*}
+  \mathrm{C}\left(T_i\right)=B\left(T_i, T_{i+1}\right) \E_{P_{T_{i+1}}}\left(\Berm\left(T_{i+1}\right) \mid \mathcal{F}_{T_i}\right)
+\end{equation*}
+スワップションの価値は
+\begin{equation}
+  \Berm\left(T_i\right)=\max \left(\mathrm{E}\left(T_i\right), \mathrm{C}\left(T_i\right)\right)
+  \label{eq:3.30}
+\end{equation}
+
+\subsubsection{満期が同じスワップションへのキャリブレーション：Calibrating to co-terminal swaptions}
+キャリブレーションはエキゾチック商品をヘッジするために使うバニラオプションを用いる．
+バミューダンスワップションに対しては，満期が同じ（co-terminalな）スワップションを用いる．
+Hull--Whiteモデルから求まる価格$\PSwpt_{i,n}(0)$\footnote{オプション行使の満期が$T_i$でスワップの満期が$T_n$のスワップション}とマーケット価格$\PSwpt_{i,n}^\mathrm{mkt}(0)=\PSwpt_{i,n}^\mathrm{Black}(0;\hat{\sigma}_{i,n}^\mathrm{swpt})$の差を最小化するようにパラメータ$\sigma_i, i=0,\ldots, n$を決定する\footnote{$\sigma(t)$は単過程と仮定して，$T_{i-1}<t\leq T_i$で$\sigma(t)=\sigma_i$}．
+\begin{equation*}
+  \min_{\sigma_1,\ldots,\sigma_n} \sum_{i=1}^n \left(\PSwpt_{i,n}(0) - \PSwpt_{i,n}^\mathrm{mkt}(0)\right)^2
+\end{equation*}
+
+\subsubsection*{平均回帰パラメータと自己共分散}
+平均回帰パラメータ$\alpha$のキャリブレーションを考えたい．
+自己共分散は
+\begin{align*} 
+  \operatorname{Corr}(r(t), r(s))  =\frac{\E(r(t) r(s))}{\sqrt{\operatorname{Var}(r(t)) \operatorname{Var}(r(s))}}  
+  & =\frac{\int_0^t \sigma^2(u) \mathrm{e}^{-\alpha(t+s-2 u)} \,\diff u}{\sqrt{\int_0^t \sigma^2(u) \mathrm{e}^{-2 \alpha(t-u)} \,\diff u \int_0^s \sigma^2(u) \mathrm{e}^{-2 \alpha(s-u)} \,\diff u}}
+\end{align*}
+となり，特に$\sigma$が一定の場合，
+\begin{equation*}
+  \operatorname{Corr}(r(t), r(s)) = \sqrt{\frac{\mathrm{e}^{2\alpha t}-1}{\mathrm{e}^{2\alpha s}-1}}
+\end{equation*}
+自己共分散から$\alpha$のキャリブレーションができる\footnote{$t,s$が$(T_i,T_{i+1}]$に含まれていれば，$\sigma$が一定であるという仮定は上で用いた$\sigma(t)$が単過程の仮定と整合性が取れる．}．
+
+\subsubsection*{数値的方法}
+バミューダンスワップションの価格評価の再帰関係を利用して，$\Berm(0)$を計算する．
+
+まず，短期金利領域を離散化する：$r(0)$が中心のグリッド$r_0<\cdots<r_N$を構成
+
+$\Berm(T_{i+1}; r(T_{i+1})), r(T_{i=1})=r_j$が各$j=0,\ldots,N$に対してわかっていると仮定して，継続価値
+\begin{equation*}
+  \mathrm{C}\left(T_i; r(T_i)=r_j\right)=B\left(T_i, T_{i+1}\right) \E_{P_{T_{i+1}}}\left(\Berm\left(T_{i+1}; r(T_{i+1})\right) \mid \mathcal{F}_{T_i}\right)
+\end{equation*}
+を計算する．
+式\eqref{eq:3.29}より
+\begin{align*}
+\begin{aligned}
+  r(T_{i+1}) &=  \underbrace{(r(T_i)-f(0, T_i)) \mathrm{e}^{-\alpha(T_{i+1}-T_{i})}+f(0, T_{i+1}) 
+   +\int_0^{T_i} \sigma(u)^2 \frac{\mathrm{e}^{-\alpha(T_{i+1}+T_i-2 u)}-\mathrm{e}^{-2 \alpha(T_{i+1}-u)}}{\alpha} \diff  u}_{m_i} \\
+   &\quad+\int_{T_i}^{T_{i+1}} \sigma(u) \mathrm{e}^{-\alpha(T_{i+1}-u)} \diff  W^{T_{i+1}}(u)
+  \end{aligned}
+\end{align*}
+であるが，これは$\F_{T_i}$と独立で，平均は$m_i$，分散は
+\begin{equation*}
+  s_i^2 = \int_{T_i}^{T_{i+1}} \sigma(u)^2 \mathrm{e}^{-2\alpha(T_{i+1}-u)} \diff u
+\end{equation*}
+であるため，
+\begin{equation*}
+  \E_{P_{T_{i+1}}}(\Berm(T_{i+1};r(T_{i+1}))\mid \F_{T_i}) = \frac{1}{\sqrt{2\pi s_i^2}}\int_{-\infty}^\infty \Berm(T_{i+1};x)\exp\left(-\frac{(x-m_i)^2}{2s_i^2}\right)\diff x
+\end{equation*}
+によって，継続価値を計算する．
+積分部分は，グリッド$r_0,\ldots,r_N$上での$\Berm(T_{i+1};r(T_{i+1}))$の値を用いて数値的に計算する．
+以上により，各グリッド$r(T_i)=r_j$に対して$\Berm(T_i;r(T_i))$が\eqref{eq:3.30}より求まる．
+
+オプション評価の際には，最終権利行使日$T_l$から始めて，時間と逆向きに計算をおこなう．
+$T_l$でそれ以降までオプションを保持する価値はないので，$C(T_l)=0$であり，順に遡って$\Berm(0;r(0))$を求める．
+
+\subsection{Two-factor Hull--Whiteモデル}
+多くのエキゾチックオプションは異なる満期のレートの相関関係に特に敏感であり，マルチファクターのフレームワークでモデル化する必要がある．
+これには，2 つのレートの差に非線形に依存するオプションや，ペイオフが 2 つの異なる金利曲線に依存するオプションが含まれる．
+
+One-factorの自然な拡張を考えて，短期金利のSDEが
+\begin{equation}
+  \diff r(t) = (\theta(t)+u(t)-\alpha r(t))\,\diff t + \delta \,\diff W(t)\label{eq:3.31}
+\end{equation}
+で与えられる場合を考える．
+ここで，$\alpha,\delta$は定数，$\theta(t)$は確定的な関数である（$W(t)$はリスク中立測度のもとでのブラウン運動）．
+$u(t)$は確率的な項で，以下のSDEを満たす
+\begin{equation}
+  \diff u(t) = -\beta u(t)\,\diff t + \eta\,\diff Z(t) \label{eq:3.32}
+\end{equation}
+なお初期値$u(0)=0$とし，$\beta,\varepsilon$は定数，$Z(t)$は$W(t)$とは異なるリスク中立測度のもとでのブラウン運動で
+\begin{equation}
+  \diff W(t)\diff Z(t) = \varrho\,\diff t \label{eq:3.33}
+\end{equation}
+を満たす，
+定数$\varrho$2つのブラウン運動の相関係数である．
+また，$\alpha\neq\beta$とする．
+
+これまでと同様にゼロクーポン債価格などを求めることができるが，複雑である．
+ここでは，two-factor Hull--Whiteモデルの短期金利を以下のように表すことを考える．
+\begin{equation}
+  r(t) = \phi(t) + x(t) + y(t)\label{eq:3.34}
+\end{equation}
+ここで，$\phi(t)$は確定的な関数，$x(t),y(t)$はそれぞれ
 \begin{align}
-  P_S(B(S,T)\geq K\mid\F_t) &= P_S\left(\ln\frac{B(S,T)}{\FP(t;S,T)}\geq\ln\frac{K}{\FP(t;S,T)}\relmiddle|\F_t\right) \notag\\
-  &= P_S\left(\ln\frac{B(S,T)}{\FP(t;S,T)}\geq\ln\frac{K}{\FP(t;S,T)}\right) \notag\\
-  &= \frac{1}{\sqrt{2\pi v(t,S)}}\int_{\ln\frac{K}{\FP(t;S,T)}}^\infty\exp\left(-\frac{\left(x+\frac{v(t,S)}{2}\right)^2}{2v(t,S)}\right)\,\diff x \notag\\
-  &= \frac{1}{\sqrt{2\pi}}\int_{-d_{-}}^\infty \exp\left(-\frac{y^2}{2}\right)\,\diff y \qquad\qquad \left(y=\frac{x+\frac{v(t,S)}{2}}{\sqrt{v(t,S)}}\right) \notag\\
-  &= \frac{1}{\sqrt{2\pi}}\int_{-\infty}^{d_{-}} \exp\left(-\frac{y^2}{2}\right)\,\diff y \notag\\
-  &= N(d_{-}) 
+  \diff x(t) &= -\alpha x(t)\,\diff t + \sigma\,\diff W(t) \label{eq:3.35}\\
+  \diff y(t) &= -\beta y(t)\,\diff t + \eta\,\diff Z(t)\label{eq:3.36}
 \end{align}
+満たす（$x(0)=y(0)=0$）．
+$\alpha,\beta,\sigma,\eta$は定数で（実は，$\alpha$と$\beta$は\eqref{eq:3.31}\eqref{eq:3.32}のそれと同一），$U(t),V(t)$はリスク中立測度のもとでのブラウン運動で
+\begin{equation}
+  \diff W(t)\diff U(t) = \rho\,\diff t\label{eq:3.37}
+\end{equation}
+を満たす．
+
+\begin{exer}
+  \begin{align*}
+    & \phi(t)=r(0) \mathrm{e}^{-\alpha t}+\int_0^t \theta(s) \mathrm{e}^{-\alpha(t-s)} \diff s \\ 
+    & y(t)=\frac{u(t)}{\alpha-\beta} \\ 
+    & x(t)=r(t)-\phi(t)-y(t)
+  \end{align*}
+  と置けば，\eqref{eq:3.34}-\eqref{eq:3.37}を満たせることを示せ．
+\end{exer}
+\begin{proof}
+  \begin{align*}
+    \diff \phi(t) &= (-\alpha \phi(t) + \theta(t) )\diff t \\
+    \diff y(t) &= \frac{\diff u(t)}{\alpha-\beta} \\
+    &= \frac{1}{\alpha-\beta}(-\beta u\,\diff t+\varepsilon\,\diff Z(t)) \\
+    &= \beta y\,\diff t + \underbrace{\frac{\varepsilon}{\alpha-\beta}}_{\eta}\,\diff \underbrace{Z(t)}_{V(t)}\\
+    \diff x(t) &= \diff r(t) - \diff \phi(t) - \diff y(t) \\
+    &= (\theta(t)+u(t)-\alpha r(t))\,\diff t + \delta\,\diff W(t) - (-\alpha \phi(t) + \theta(t) )\diff t - (\beta y\,\diff t + \eta\,\diff V(t)) \\
+    &= -\alpha(r(t)-\phi(t)-y(t))\,\diff t + \delta\,W(t) - \eta\,\diff V(t) \\
+    &= -\alpha x(t)\,\diff t + \underbrace{\sqrt{\delta^2+\eta^2-2\delta\eta\varrho}}_{\sigma}\,\diff \underbrace{\left(\frac{\delta}{\sigma}W(t)-\frac{\eta}{\sigma}Z(t)\right)}_{U(t)}
+  \end{align*}
+\end{proof}
+
+\subsubsection*{Gaussian two-factorアプローチ}
+two-factor Hull--Whiteモデル\eqref{eq:3.31}\eqref{eq:3.32}をGaussian two-factorモデル\eqref{eq:3.34}-\eqref{eq:3.36}に変換した．
+これにより，ゼロクーポン債の価格が求まる．
+
+式\eqref{eq:3.35}\eqref{eq:3.36}を積分して
+\begin{align}
+  \begin{aligned}
+  r(s)= \phi(s)+x(t) \mathrm{e}^{-\alpha(s-t)}+y(t) \mathrm{e}^{-\beta(s-t)}  +\sigma \int_t^s \mathrm{e}^{-\alpha(s-u)} \,\diff U(u)+\eta \int_t^s \mathrm{e}^{-\beta(s-u)} \,\diff V(u)
+  \end{aligned}
+\end{align}
+$B(t,T)$を求めたい
+\begin{align*}
+  \int_t^T r(s)\,\diff s &= \int_t^T\phi(s)\,\diff s + x(t)\underbrace{\int_t^T\mathrm{e}^{-\alpha(s-t)}\,\diff s}_{-\frac{1}{\alpha}(\mathrm{e}^{-\alpha(T-t)}-1)} + y(t)\int_t^T\mathrm{e}^{-\beta(s-t)}\,\diff s \\
+  &\quad +\sigma\int_t^T\int_t^s\mathrm{e}^{-\alpha(s-u)}\,\diff U(u)\,\diff s + \eta\int_t^T\int_t^s\mathrm{e}^{-\beta(s-u)}\,\diff V(u)\,\diff s
+\end{align*}
 ここで，
-\begin{align}
-  d_{-} &= -\frac{\ln\frac{K}{\FP(t;S,T)} + \frac{1}{2}v(t,S)}{\sqrt{v(t,S)}} 
-  = -\frac{-\ln\frac{\FP(t;S,T)}{K} + \frac{1}{2}v(t,S)}{\sqrt{v(t,S)}} \notag\\
-  &= \frac{\ln\frac{\FP(t;S,T)}{K} - \frac{1}{2}v(t,S)}{\sqrt{v(t,S)}} 
-  = \frac{\ln\frac{B(t,T)}{KB(t,S)}-\frac{1}{2}v(t,S)}{\sqrt{v(t,S)}}\label{eq:2.18}
-\end{align}
-
-$P_T$についても考える．
-Proposition~2.3とギルサノフの定理より
 \begin{align*}
-  \frac{\diff P_T}{\diff Q} &= \exp\left(\int_0^T\Sigma(u,T)\,\diff W(u) - \frac{1}{2}\int_0^T\Sigma(u,T)^2\,\diff u\right) \\
-  W^T(t) &= W(t) - \int_0^t\Sigma(u,T)\,\diff u
+  \diff\left(\int_t^s \mathrm{e}^{-\alpha(s-u)}\,\diff U(u)\right) &= \diff U(s) - \alpha\left(\int_t^s \mathrm{e}^{-\alpha(s-u)}\,\diff U(u)\right)\,\diff s \\
+  \int_t^T\int_t^s\mathrm{e}^{-\alpha(s-u)}\,\diff U(u)\,\diff s &= \int_t^T\diff \left(\int_t^s\frac{1-\mathrm{e}^{-\alpha(s-u)}}{\alpha}\,\diff U(u)\right) \\
+  &= \int_t^T \frac{1-\mathrm{e}^{-\alpha(T-u)}}{\alpha}\,\diff U(u)
 \end{align*}
-で，$W^T(t)$は$P_T$のもとでブラウン運動．
-$W^S(t)$との関係
-\begin{equation*}
-  W^S(t) = W(t) - \int_0^t\Sigma(u,S)\,\diff u = W^T(t) + \int_0^t(\Sigma(u,T)-\Sigma(u,S))\,\diff u
-\end{equation*}
-を\eqref{eq:2.16}に用いれば
-\begin{equation*}
-  B(S,T) = \FP(t;S,T)\exp\left(\int_t^S(\Sigma(u,T)-\Sigma(u,S))\,\diff W^T(u) + \frac{1}{2}\int_t^S(\Sigma(u,T)-\Sigma(u,S))^2\,\diff u\right)
-\end{equation*}
-フォワード測度$P_T$のもとでの$\ln\frac{B(S,T)}{\FP(t;S,T)}$は平均$\frac{1}{2}v(t,S)$，分散$v(t,S)$の正規分布に従う．
-先と同様にして
-\begin{align}
-  P_T(B(S,T)\geq K\mid\F_t) &= P_T\left(\ln\frac{B(S,T)}{\FP(t;S,T)}\geq\ln\frac{K}{\FP(t;S,T)}\right) = N(d_{+})\label{eq:2.19}\\
-  d_{+} &= \frac{\ln\frac{\FP(t;S,T)}{K}+\frac{1}{2}v(t,S)}{\sqrt{v(t,S)}} = \frac{\ln\frac{B(t,T)}{KB(t,S)}+\frac{1}{2}v(t,S)}{\sqrt{v(t,S)}}\label{eq:2.20}
-\end{align}
-
-\setcounter{thm}{3}
-\begin{thm}
-  ゼロクーポン債$B(t,T)$が式\eqref{eq:2.8}に従うとき，満期$S$，ストライク$K$のゼロクーポン債$B(t,T)$のコールオプションの価値$\BC(t;S,T,K)$は
-  \begin{equation}
-    \BC(t) = B(t,T)N(d_{+}) - KB(t,S)N(d_{-}) \label{eq:2.21}
-  \end{equation}
-  であり，$d_{\pm}$は式\eqref{eq:2.18}，\eqref{eq:2.20}で与えられる．
-\end{thm}
-
-\subsubsection*{債権オプションのプット・コール・パリティ}
-満期$S$で行使価格$K$のコールの買いとプットの売りのポートフォリオを考える．
-時刻$S$での価値は
-\begin{equation*}
-  (B(S,T)-K)^+ - (K-B(S,T))^+ = B(S,T) - K
-\end{equation*}
-となり，これは満期$T$のゼロクーポン債の1単位買いと満期$S$のゼロクーポン債の$K$単位買いのポートフォリオと等価である．
-無裁定のもと，時刻$t$での価値も等価となり，以下の関係（債権オプションの\textbf{プットコールパリティ}）が成り立つ
-\begin{equation*}
-  \BC(t;S,T,K) - \BP(t;S,T,K) = B(t,T) - KB(t,S)
-\end{equation*}
-ここで，$\BP(t;S,T,K)$は満期$S$で行使価格$K$の$T$-bondプットオプションの$t$時点での価値．
-
-プットコールパリティを使えば，$\BC(t;S,T,K)$の式\eqref{eq:2.21}から$\BP(t;S,T,K)$を求めることができる．
+以上より
 \begin{align*}
-  \BP(t;S,T,K) &= \BC(t;S,T,K) - B(t,T) + KB(t,S) \\
-  &= B(t,T)N(d_{+}) - KB(t,S)N(d_{-}) - B(t,T) + KB(t,S) \\
-  &= KB(t,S)(1-N(d_{-})) - B(t,T)(1-N(d_{+}))
+  \int_t^T t(s)\,\diff s &= \int_t^T\phi(s)\,\diff s + x(t)\frac{1-\mathrm{e}^{-\alpha(T-t)}}{\alpha} + y(t)\frac{1-\mathrm{e}^{-\beta(T-t)}}{\beta} \\
+  & \quad + \frac{\sigma}{\alpha} \int_t^T 1-\mathrm{e}^{-\alpha(T-u)}\,\diff U(u) + \frac{\eta}{\beta} \int_t^T 1-\mathrm{e}^{-\beta(T-u)}\,\diff V(u)
 \end{align*}
-$N(\cdot)$の定義（標準正規累積分布関数）より
+前三項は確定的，後ろ二項は$\F_t$独立であり，期待値$m$と分散$V(t,T)$はそれぞれリスク中立測度のもとで
 \begin{align*}
-  1-N(x) &= 1-\frac{1}{\sqrt{2\pi}}\int_{-\infty}^x \exp\left(-\frac{y^2}{2}\right)\,\diff y\\
-  &= \frac{1}{\sqrt{2\pi}}\int_{x}^\infty \exp\left(-\frac{y^2}{2}\right)\,\diff y\\
-  &= \frac{1}{\sqrt{2\pi}}\int_{-\infty}^{-x} \exp\left(-\frac{y^2}{2}\right)\,\diff y = N(-x)
+  m &= \int_t^T\phi(s)\,\diff s + x(t)\frac{1-\mathrm{e}^{-\alpha(T-t)}}{\alpha} + y(t)\frac{1-\mathrm{e}^{-\beta(T-t)}}{\beta} \\
+  V(t,T) &= \frac{\sigma^2}{\alpha^2} \int_t^T \left(1-\mathrm{e}^{-\alpha(T-u)}\right)^2\,\diff u + \frac{\eta^2}{\beta^2} \int_t^T \left(1-\mathrm{e}^{-\beta(T-u)}\right)^2\,\diff u \\
+  & \quad + 2\rho\frac{\sigma\eta}{\alpha\beta}\int_t^T\left(1-\mathrm{e}^{-\alpha(T-u)}\right)\left(1-\mathrm{e}^{-\beta(T-u)}\right)\,\diff u \tag{3.40}
 \end{align*}
-が成り立つため
+以上より
 \begin{equation}
-  \BP(t;S,T,K) = KB(t,S)N(-d_{-}) - B(t,T)N(-d_{+}) \label{eq:2.22}
+  B(t,T) = \exp\left(-m + \frac{1}{2}V(t,T)\right)
 \end{equation}
+$V(t,T)$の積分の具体的な計算は省略．
 
-\subsection{キャップとフロア}
-金利キャップ（もしくはフロア）：時刻$T_i\,(i=1,\ldots,n)$で$\tau_i(L(T_{i-1},T_i)-K)^{+}$（もしくは$\tau_i(K-L(T_{i-1},T_i))^{+}$）を受け取る（$\tau_i=T_i-T_{i-1}$）．
-各時刻$T_i$でのペイオフを\textbf{キャップレット}（もしくは\textbf{フロアレット}）と呼ぶ．
-$T_i$のキャップレットの$T_{i-1}$での価値は
+\subsubsection*{現在の期間構造へのフィッティング}
+\setcounter{equation}{40}
+$\phi(t)$は現在の期間構造にフィットするように選ばれる．
+つまり，任意の$T$に対し，以下が成り立つように$\phi(t)$を選ぶ．
 \begin{equation*}
-  \tau_iB(T_{i-1},T_i)(L(T_{i-1},T_i)-K)^{+}
+  B(0,T) = \exp\left(-\int_0^T \phi(s)\,\diff s + \frac{1}{2}V(0,T)\right)
 \end{equation*}
-であるが，シングルカーブの世界では，LIBORレート$L(T_{i-1},T_i)$とディスカウントファクターの関係
+ここで，\eqref{eq:1.9}\footnote{
+  \begin{align*}
+    \frac{B(t,T)}{B(t,S)} &= \mathrm{e}^{(T-S)R(t;S,T)} \\
+    R(t;S,T) &= -\frac{\ln{B(t,T)}-\ln{B(t,S)}}{T-S} \\
+    f(t,T) &= \lim_{\delta T\to0} R(t;T,T+\delta T) = -\frac{\partial\ln{B(t,T)}}{\partial T} \tag{1.9} \label{eq:1.9}
+  \end{align*}
+}
+より，
 \begin{align}
-  B(T_{i-1},T_i) &= \frac{1}{1+\tau_iL(T_{i-1},T_i)} \notag\\
-  L(T_{i-1},T_i) &= \frac{1-B(T_{i-1},T_i)}{\tau_iB(T_{i-1},T_i)} \notag
+  f(0,T) &= \phi(T)  - \frac{1}{2}\frac{\partial V(0,T)}{\partial T} 
 \end{align}
-を用いて，
+ゼロクーポン債の価格を求めるのに必要なのは関数$\phi$そのものよりも，その積分である
 \begin{align*}
-  \tau_iB(T_{i-1},T_i)(L(T_{i-1},T_i)-K)^{+} &= \tau_iB(T_{i-1},T_i)\left(\frac{1-B(T_{i-1},T_i)}{\tau_iB(T_{i-1},T_i)}-K\right)^{+} \\
-  &= \left(1-B(T_{i-1},T_i)-\tau_iKB(T_{i-1},T_i)\right)^{+}\\
-  &= (1+\tau_iK)\left(\frac{1}{1+\tau_iK}-B(T_{i-1},T_i)\right)^{+}
-\end{align*}
-と変形される．
-これは，$T_i$満期のゼロクーポン債に基づく，ストライク$\frac{1}{1+\tau_iK}$で満期$T_{i-1}$のプットオプションを$1+\tau_iK$単位持つことに等しい．
-よって，キャップの価値は，プットオプションの価値の和で表せることになる（フロアも同様）．
-\begin{align*}
-  \mathbf{Cap}(t) &= \sum_{i=1}^n (1+\tau_iK)\BP\left(t;T_{i-1},T_i,\frac{1}{1+\tau_iK}\right) \\
-  \mathbf{Flr}(t) &= \sum_{i=1}^n (1+\tau_iK)\BC\left(t;T_{i-1},T_i,\frac{1}{1+\tau_iK}\right)
+  \int_t^T \phi(s)\,\diff s &= \int_t^T f(0,s) + \frac{1}{2}\frac{\partial V(0,s)}{\partial s} \,\diff s \\
+  &= \int_t^T -\frac{\partial \ln{B(0,s)}}{\partial s} + \frac{1}{2}\frac{\partial \ln{B(0,s)}}{\partial s} \,\diff s \\
+  &= \ln\frac{B(0,t)}{B(0,T)} + \frac{1}{2}(V(0,T)-V(0,t))
 \end{align*}
 
-\subsubsection*{キャップとフロアのプット・コール・パリティ}
-キャップ1単位の買いとフロア1単位の売りのポートフォリオを考える．
-時刻$T_i\,(i=1,2,\ldots,n)$でのペイオフは$\tau_i(L(T_{i-1},T_i)-K)$であり，ペイヤースワップの時刻$T_i$でのペイオフと等価である：
+\begin{prop}
+  two-factor Hull--Whitモデルにおいて，現在時刻における金利の期間構造にちょうどフィットするゼロクーポン債の価格は
+  \begin{equation}
+    \begin{aligned}
+      B(t, T)=\frac{B(0, T)}{B(0, t)} \exp \left(  -x(t) \frac{1-\mathrm{e}^{-\alpha(T-t)}}{\alpha}-y(t) \frac{1-\mathrm{e}^{-\beta(T-t)}}{\beta}+\frac{1}{2}(V(0, t)-V(0, T)+V(t, T))\right)\label{eq:3.42}
+      \end{aligned}
+  \end{equation}
+\end{prop}
+
+\subsubsection{債権のオプション}
+2次元Hull--Whiteモデルでは，債券価格\eqref{eq:3.42}の対数のボラティリティは確定的であり，モデルは債券オプションの解析式を導く．
+満期$T>S$のゼロクーポン債の行使価格$K$，行使日$S$のコールオプションの$0$時点価格は
 \begin{align*}
-  \mathbf{Cap}(t) - \mathbf{Flr}(t) &= \mathbf{PS}(t) 
+  \BC(0;S,T,K) &= B(0,T)N(d_{+}) - KB(0,S)N(d_{-}) \\
+  &d_{+}=\frac{\ln \frac{B(0, S) K}{B(0, T)}+\frac{1}{2} v(0, S)}{\sqrt{v(0, S)}}, \quad d_{-}=d_{+}-v(0, S)
+\end{align*}
+ここで，$v(0,S)$は$\ln B(S,T)$の分散であるが，確率的なのは
+\begin{align*}
+  v(0, S) &=  \operatorname{Var}(x(S)\frac{1-\mathrm{e}^{-\alpha(T-t)}-1}{\alpha}+y(S)\frac{1-\mathrm{e}^{-\beta(T-t)}-1}{\beta}) \\
+  &= \frac{\sigma^2}{2 \alpha^3}\left(1-\mathrm{e}^{-\alpha(T-S)}\right)^2\left(1-\mathrm{e}^{-2 \alpha S}\right)+\frac{\eta^2}{2 \beta^3}\left(1-\mathrm{e}^{-\beta(T-S)}\right)^2\left(1-\mathrm{e}^{-2 \beta S}\right) \\
+  &\quad +\frac{2 \rho \sigma \eta}{\alpha \beta(\alpha+\beta)}\left(1-\mathrm{e}^{-\alpha(T-S)}\right)\left(1-\mathrm{e}^{-\beta(T-S)}\right)\left(1-\mathrm{e}^{-(\alpha+\beta) S}\right)
 \end{align*}
 
 \end{document}
