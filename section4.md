@@ -156,5 +156,146 @@ $$
 | 制御に要する費用が不連続・劣加法 | インパルス制御問題 | 続行領域の設定と境域内部に押し返す操作 | 準変分不等式 |
 
 
+## 5 確率制御の応用
+### 5.1 絶対連続制御によるフロー管理
+#### 5.1.1 枯渇性資源の最適消費
+枯渇性資源：石油や石炭・天然ガスなど．  
+これらは不確実なのか？  
+- 技術進歩により新たな埋蔵資源？
+- 違う形の資源開発（ex. シェールガス）？
+- 埋蔵量予想に対して掘り当てるのは賭け？
+
+$$
+\mathrm{d}S_t = -C_t\,\mathrm{d}t+\sigma S_t\,\mathrm{d}W_t, \quad S_0 = x \tag{5.1.2}
+$$
+
+確率制御問題
+$$
+\begin{align}
+\max_{\{C_t\}}J(x;\{C_t\})&=\max_{\{C_t\}}\mathbb{E}\left[\int_0^\infty \mathrm{e}^{-rt}U(C_t)\,\mathrm{d}t\right] \tag{5.1.4} \\
+\text{subject to}&\quad (5.1.2) \notag \\
+&\quad S_t\geq0,\ 0\leq t \leq \infty \notag
+\end{align}
+$$
+価値関数
+$$
+V(x) = \max_{\{C_t\}} J(x;\{C_t\}) = J(x;\{C_t^\ast\}) \tag{5.1.5}
+$$
+
+HJB 方程式
+$$
+\begin{align}
+&\max_{u_t}\left[f(x_t,u_t) + \mu(x_t,u_t) V'(x_t) + \frac{1}{2}\sigma(x_t,u_t)^2V''(x_t) - rV(x_t)\right] = 0 \tag{3.2.24}\\
+&\max_{C_0}\left[\frac{1}{2}\sigma^2x^2V''(x) - C_0V'(x) - rV(x) + U(C_0)\right] = 0 \tag{5.1.6}
+\end{align}
+$$
+
+$t=0$ における最適消費
+$$
+C_0^\ast = \argmax_{c\geq0}\{-cV'(x)+U(c)\} \tag{5.1.7}
+$$
+
+効用関数を特定化（$\gamma\in(0,1)$：アロー・プラケットの相対的リスク回避度）
+$$
+\begin{align}
+&U(C_t) = \frac{1}{1-\gamma}C_t^{1-\gamma} \tag{5.1.8} \\
+&\implies C_0^\ast = V'(x)^{-1/\gamma} \tag{5.1.9}
+\end{align}
+$$
+
+$V$ の関数形を仮定
+$$
+\begin{align}
+&V(x) = \frac{A}{1-\gamma}x^{1-\gamma} \tag{5.1.10} \\
+&\implies C_0^\ast = A^{-1/\gamma}x \tag{5.1.11}
+\end{align}
+$$
+HJB 方程式に代入して $A$ について解けば
+$$
+A=\left[\frac{1-\gamma}{\gamma}\left(\frac{1}{2}\sigma^2\gamma+\frac{r}{1-\gamma}\right)\right]^{-\gamma} \tag{5.1.13}
+$$
+
+(5.1.11) を見れば，$\{C_t^\ast\}$ は常にその時点での資源ストック量に比例．
+
+(5.1.10) は verification theorem より，価値観数と等しくなり，求められた最適消費は，経済主体の問題に対する最適消費になっている．
+
+#### 5.1.2 環境負荷物質の排出管理
+環境負荷物質のストック $Y_t$
+$$
+\begin{align}
+\mathrm{d}Y_t &= (\gamma E_t - \delta Y_t)\,\mathrm{d}t + \sigma Y_y\,\mathrm{d}W_t,\quad Y_0 = y \tag{5.1.15}\\
+&E_t\text{：環境負荷物質排出量} \notag\\
+&\gamma\in(0,1]\text{：$E_t$のうちストックとして蓄積される割合} \notag \\
+&\delta\in(0,1)\text{：環境負荷物質のストックの自然原毛率} \notag
+\end{align}
+$$
+
+環境負荷物質のストックがもたらす損害
+$$
+D(Y_t) = bY_t^2 \tag{5.1.16}
+$$
+
+環境負荷物質の削減のためのコスト（投入物を環境負荷物質の排出が少ないものに変更するコスト）
+$$
+\begin{align}
+C(E_t)&=c(\bar{E}-E_t)^2 \tag{5.1.18} \\
+&\bar{E}\text{：変更前の排出フロー} \notag
+\end{align}
+$$
+
+環境負荷物質の排出フローを選択する問題
+$$
+\begin{align}
+\min_{\{E_t\}}J(u;\{E_t\}) &= \min_{\{E_t\}}\mathbb{E}\left[\int_0^\infty\mathrm{e}^{-rt}[D(Y_t)+C(E_t)]\,\mathrm{d}t\right] \tag{5.1.20} \\
+&\text{subject to}\quad (5.1.15) \notag
+\end{align}
+$$
+価値関数
+$$
+V(y) = \min_{\{E_t\}}J(y;\{E_t\}) = J(u;\{E_t^\ast\})
+$$
+
+HJB 方程式
+$$
+\begin{align}
+&\max_{u_t}\left[f(x_t,u_t) + \mu(x_t,u_t) V'(x_t) + \frac{1}{2}\sigma(x_t,u_t)^2V''(x_t) - rV(x_t)\right] = 0 \tag{3.2.24}\\
+&\max_{E_0}\left[\frac{1}{2}\sigma^2y^2V''(y) + (\gamma E_0-\delta y)V'(y) - rV(y) + by^2+c(\bar{E}-E_0)^2\right] = 0 \tag{5.1.22}
+\end{align}
+$$
+
+最適な環境負荷物質の排出フロー
+$$
+\begin{align}
+E_0^\ast &= \argmin_{E_0\geq0}\left\{\gamma E_0V'(y)-c(2\bar{E}E_0-E_0^2)\right\} \tag{5.1.23} \\
+E^\ast &= \bar{E}-\frac{\gamma}{2c}V'(y) \tag{5.1.24}
+\end{align}
+$$
+
+$V$ の関数形を仮定
+$$
+V(y) = Ay^2+By\bar{E}+M\bar{E}^2 \tag{5.1.26}
+$$
+
+(5.1.24)(5.1.26) を HJB 方程式に代入
+$$
+\begin{gather}
+\left[-\rho{}A-\frac{\gamma^2}{c}A^2+b\right]y^2
++\left[\left(2\gamma{}A-\delta{}B-\frac{\gamma^2}{c}AB-rB\right)\bar{E}\right]y
++\left(\gamma{}B-\frac{\gamma^2}{4c}B^2-rM\right)\bar{E}^2=0 \tag{5.1.27} \\
+\rho\equiv r+2\delta -\sigma^2 \notag
+\end{gather}
+$$
+これは任意の $y$ で成り立つため，係数・定数項は常にゼロ．  
+これを解けば $A, B, M$ が求められる．
+
+$$
+\begin{align}
+A&=\frac{-\rho+\sqrt{\rho^2+4\gamma^2b/c}}{2\gamma^2/c} \tag{5.1.28} \\
+B&=\frac{2\gamma{}A}{r+\delta+\gamma^2A/c} \tag{5.1.29} \\
+M&=\frac{\gamma{}B}{r}\left[1-\frac{\gamma{}B}{4c}\right] \tag{5.1.30} \\
+E_t^\ast&=\bar{E}-\frac{\gamma}{2c}(2AY_t+B\bar{E}) \tag{5.1.31}
+\end{align}
+$$
+
 
 
